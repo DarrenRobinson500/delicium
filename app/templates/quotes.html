@@ -1,0 +1,14 @@
+{% extends 'base.html'%}
+{% block content %}
+    <h1>Quotes</h1>
+    <form action="{% url 'quotes' %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        <label class="form-label">Quote</label>
+        <input type="text" name="quote" class="form-control" style="min-width:500px"><br>
+        <button type="submit" class="btn btn-primary">Add quote</button>
+    </form>
+    <hr>
+    {% for quote in quotes %}
+    <p>{{ quote.quote }}</p>
+    {% endfor %}
+{% endblock %}

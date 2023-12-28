@@ -1,0 +1,96 @@
+{% extends 'base.html'%}
+{% block content %}
+
+    <h1>{{ title }}</h1>
+    <div class="container px-4">
+      <div class="row gx-5">
+        <div class="col">
+         <div class="p-3 border bg-light">
+            <h3>Create Note</h3>
+             <form action="{% url 'notes' %}" class="form-inline my-2 my-lg-0" method="POST">
+                {% csrf_token %}
+                 <textarea name="text" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea><br>
+                <p></p>
+                <button type="submit" class="btn btn-primary">Add note</button>
+            </form>
+         </div>
+        </div>
+        <div class="col">
+         <div class="p-3 border bg-light">
+            <h3>Create Category</h3>
+            <form action="{% url 'new_category' %}" class="form-inline my-2 my-lg-0" method="POST">
+                {% csrf_token %}
+                <table class="table-primary">
+                    <tbody>
+                        <td>
+                            <label class="form-label">Category</label>
+                            <input type="text" name="name" class="form-control" style="min-width:200px">
+                        </td>
+                    </tbody>
+                </table>
+                <p></p>
+                <button type="submit" class="btn btn-primary">Add Category</button>
+            </form>
+        </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <hr>
+
+    <h2>There are {{ count }} {{ title }} without parents</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Note</th>
+          <th scope="col">Control</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in objects %}
+        <tr>
+            <td><a href="{% url 'note' item.id %}">{{ item.text }}</a></td>
+            <td><a class="btn btn-danger" href="{% url 'delete_note' item.id %}">Delete</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>All notes</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Note</th>
+          <th scope="col">Control</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in all_notes %}
+        <tr>
+            <td>{{ item.order }}. <a href="{% url 'note' item.id %}">{{ item.text }}</a></td>
+            <td><a class="btn btn-danger" href="{% url 'delete_note' item.id %}">Delete</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+                {{ field.name }} {{ error|escape }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}
