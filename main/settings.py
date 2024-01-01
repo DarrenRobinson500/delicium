@@ -146,7 +146,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # HTTPS Settings
-if socket.gethostname() == "Mum_and_Dads":
+if True or socket.gethostname() == "Mum_and_Dads":
     DEBUG = True
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
