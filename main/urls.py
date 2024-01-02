@@ -31,6 +31,7 @@ urlpatterns = [
     path("home", home, name="home"),
     path("diary", diary, name="diary"),
     path("dogs", dogs, name="dogs"),
+    path("dog_edit<id>", dog_edit, name="dog_edit"),
     path("booking<id>", booking, name="booking"),
     path("quotes", quotes, name="quotes"),
     path("birthdays", birthdays, name="birthdays"),
@@ -41,5 +42,7 @@ urlpatterns = [
     path("down<id>", down, name="down"),
     path("delete_note<id>", delete_note, name="delete_note"),
     path("new_category", new_category, name="new_category"),
+    path("clash", clash, name="clash"),
+    path("hero_inc/<id>/<hero>", hero_inc, name="hero_inc"),
     path('pinkyak.ico', favicon_view),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

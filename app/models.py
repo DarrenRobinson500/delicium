@@ -35,7 +35,11 @@ class Booking(Model):
     end_date = DateField(null=True)
 
     def __str__(self):
-        return f"{self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
+        try:
+            return f"{self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
+        except:
+            return f"{self.start_date} to {self.end_date} {self.nights()}"
+
 
     def description(self):
         return self.dog
@@ -55,12 +59,18 @@ class Booking(Model):
 
 class Category(Model):
     name = TextField(null=True, blank=True)
+    class Meta:
+        verbose_name_plural = "Categories"
     def __str__(self):
         return self.name
 
 class Diary(Model):
     text = TextField(null=True, blank=True)
     date = DateField(auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Diary Entries"
+
     def __str__(self): return "[" + str(self.date) + "] " + self.text[0:50]
 
 class Note(Model):
@@ -75,11 +85,11 @@ class Note(Model):
         else:
             cat = "(No category)"
         if self.parent:
-            chn = self.chain()
+            chn = self.chain() + " "
         else:
             chn = ""
 
-        return f"{chn} {self.text} {cat}"
+        return f"{chn}{self.text} {cat}"
 
     def parent_text(self):
         if self.parent: return f"[{self.parent}]"
@@ -152,6 +162,35 @@ class Birthday(Model):
     def next_one(self):
         return self.next_age_days() == min_days_to_birthday()
 
+class TH(Model):
+    level = IntegerField(null=True, blank=True)
+    king_max = IntegerField(null=True, blank=True)
+    queen_max = IntegerField(null=True, blank=True)
+    warden_max = IntegerField(null=True, blank=True)
+    champ_max = IntegerField(null=True, blank=True)
+    def __str__(self):
+        return f"TH {self.level}"
+    def total(self):
+        return self.king_max + self.queen_max + self.warden_max + self.champ_max
+
+class Player(Model):
+    name = TextField(null=True, blank=True)
+    th = ForeignKey(TH, null=True, blank=True, on_delete=SET_NULL)
+    order = IntegerField(null=True, blank=True)
+    king = IntegerField(null=True, blank=True)
+    queen = IntegerField(null=True, blank=True)
+    warden = IntegerField(null=True, blank=True)
+    champ = IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name} (Level {self.th})"
+
+    def total(self):
+        return self.king + self.queen + self.warden + self.champ
+
+    def total_perc(self):
+        # return int(round((self.king + self.queen + self.warden + self.champ) / self.th.total(), 2) * 100)
+        return self.th.total() - (self.king + self.queen + self.warden + self.champ)
 
 
 
@@ -175,4 +214,4 @@ def get_birthday_reminders():
             text += f"It is {object.person}'s birthday today. "
     return text
 
-all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event]
+all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player]

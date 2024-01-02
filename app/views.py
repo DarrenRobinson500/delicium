@@ -19,7 +19,6 @@ def login_user(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            messages.success(request, ("You are now logged in."))
             return redirect('home')
         else:
             messages.success(request, ("Error logging in."))
@@ -42,7 +41,22 @@ def dogs(request):
     objects = sorted(objects, key=lambda d: d.next_booking())
 
     count = len(objects)
-    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form}
+    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form, "edit_mode": False}
+    return render(request, 'dog.html', context)
+
+def dog_edit(request, id):
+    if not request.user.is_authenticated: return redirect("login")
+    dog = Dog.objects.get(id=id)
+    if request.method == 'POST':
+        form = DogForm(request.POST, request.FILES, instance=dog)
+        if form.is_valid(): form.save()
+        return redirect("dogs")
+
+    objects = Dog.objects.all()
+    objects = sorted(objects, key=lambda d: d.next_booking())
+
+    count = len(objects)
+    context = {'objects': objects, 'title': "Dogs", 'count': count, "dog": dog, "edit_mode": True}
     return render(request, 'dog.html', context)
 
 def booking(request, id):
@@ -220,3 +234,20 @@ def events(request):
 
     context = {'objects': events_and_bookings, "count": count, 'title': "Events"}
     return render(request, 'events.html', context)
+
+def clash(request):
+    ths = TH.objects.order_by('level')
+    players = Player.objects.all().order_by('order')
+    context = {'ths': ths, 'players': players}
+    return render(request, 'clash.html', context)
+
+def hero_inc(request, id, hero):
+    player = Player.objects.get(id=id)
+    if player:
+        if hero == "king": player.king += 1
+        if hero == "queen": player.queen += 1
+        if hero == "warden": player.warden += 1
+        if hero == "champ": player.champ += 1
+        player.save()
+
+    return redirect('clash')

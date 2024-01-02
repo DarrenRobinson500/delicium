@@ -1,0 +1,25 @@
+{% extends 'base.html'%}
+{% block content %}
+    <h1>Clash</h1>
+     <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Player</th>
+          <th scope="col">King</th>
+          <th scope="col">Queen</th>
+          <th scope="col">Warden</th>
+          <th scope="col">Champ</th>
+          <th scope="col">Total</th>
+        </tr>
+      </thead>
+    {% for player in players %}
+        <tr>
+          <td>{{ player }}</td>
+          <td>{{ player.king }} / {{ player.th.king_max }} <a href="{% url 'hero_inc' player.id 'king' %}">+</a></td>
+          <td>{{ player.queen }} / {{ player.th.queen_max }} <a href="{% url 'hero_inc' player.id 'queen' %}">+</a></td>
+          <td>{{ player.warden }} / {{ player.th.warden_max }} <a href="{% url 'hero_inc' player.id 'warden' %}">+</a></td>
+          <td>{{ player.champ }} / {{ player.th.champ_max }} <a href="{% url 'hero_inc' player.id 'champ' %}">+</a></td>
+          <td>{{ player.total }} / {{ player.th.total }} ({{ player.total_perc }})</td>
+        </tr>
+    {% endfor %}
+{% endblock %}

@@ -4,22 +4,32 @@
 
      <h1 class="form-label">{{ title }}</h1><br>
 
+    {% if edit_mode %}
+     <form action="{% url 'dog_edit' dog.id %}" class="form-inline my-2 my-lg-0" method="POST" enctype="multipart/form-data">
+    {% else %}
      <form action="{% url 'dogs' %}" class="form-inline my-2 my-lg-0" method="POST" enctype="multipart/form-data">
+     {% endif %}
         {% csrf_token %}
 
         <table class="table-primary">
             <tbody>
                 <td>
                     <label class="form-label">Dog's name</label>
-                    <input type="text" name="name" class="form-control" style="min-width:200px">
+                    <input type="text" name="name" class="form-control" style="min-width:200px"
+                    {% if edit_mode %} value = "{{ dog.name }}" placeholder = "{{ dog.name }}" {% endif %}
+                    >
                 </td>
                 <td class="p-3">
                     <label class="form-label">Owners</label>
-                    <input type="text" name="owners" class="form-control" style="min-width:200px">
+                    <input type="text" name="owners" class="form-control" style="min-width:200px"
+                    {% if edit_mode %} value = "{{ dog.owners }}" placeholder = "{{ dog.owners }}" {% endif %}
+                    >
                 </td>
                 <td class="p-3">
                     <label class="form-label">Notes</label>
-                    <input type="text" name="notes" class="form-control" style="min-width:200px">
+                    <input type="text" name="notes" class="form-control" style="min-width:200px"
+                    {% if edit_mode %} {% if dog.notes %} value = "{{ dog.notes }}" placeholder = "{{ dog.notes }}" {% endif %} {% endif %}
+                    >
                 </td>
                 <td class="p-3">
                     <label class="form-label">Picture</label>
@@ -27,7 +37,7 @@
                 </td>
                 <td>
                     <p></p>
-                    <button type="submit" class="btn btn-yak">Add dog</button>
+                    <button type="submit" class="btn btn-yak">{% if edit_mode %} Update Details {% else %} Add dog {% endif %}</button>
                 </td>
             </tbody>
 
@@ -50,7 +60,7 @@
      <tbody>
         {% for item in objects %}
         <tr>
-            <td>{{ item.name }}</td>
+            <td><a href="{% url 'dog_edit' item.id %}">{{ item.name }}</a></td>
             <td>{{ item.owners }}</td>
             <td>{% if item.notes %} {{ item.notes }} {% endif %}</td>
             <td>
@@ -62,7 +72,7 @@
                 {% for booking in item.bookings %}
                 {{ booking }}<br>
                 {% endfor %}
-                <a class="btn btn-yak" href="{% url 'booking' item.id %}">Add booking</a>
+                <a class="btn btn-yak btn-sm" href="{% url 'booking' item.id %}">Add booking</a>
             </td>
         </tr>
         {% endfor %}
