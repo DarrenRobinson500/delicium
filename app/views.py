@@ -1,7 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from collections import namedtuple
+
 from .forms import *
+
+Event_Tuple = namedtuple('Event_Tuple', ['date', 'description'])
 
 
 def home(request):
@@ -35,6 +39,8 @@ def dogs(request):
         form = DogForm(request.POST, request.FILES)
         if form.is_valid(): form.save()
     objects = Dog.objects.all()
+    objects = sorted(objects, key=lambda d: d.next_booking())
+
     count = len(objects)
     context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form}
     return render(request, 'dog.html', context)
@@ -72,7 +78,7 @@ def quotes(request):
     if request.method == 'POST':
         form = QuoteForm(request.POST or None)
         if form.is_valid(): form.save()
-    objects = Quote.objects.all
+    objects = Quote.objects.all().order_by('-date')
     context = {'quotes': objects}
     return render(request, 'quotes.html', context)
 
@@ -183,3 +189,34 @@ def birthdays(request):
 
     context = {'objects': objects, "count": count, "min_days": min_days_to_birthday(), 'title': "Birthdays"}
     return render(request, 'birthdays.html', context)
+
+Event_Tuple = namedtuple('Event_Tuple', ['date', 'description'])
+
+def events(request):
+    if request.method == 'POST':
+        form = EventForm(request.POST or None)
+        if form.is_valid(): form.save()
+
+    today = date.today()
+    events = Event.objects.filter(date__gte=today).order_by(ExtractMonth('date'), ExtractDay('date'))
+    bookings = Booking.objects.filter(start_date__gte=today).order_by(ExtractMonth('start_date'), ExtractDay('start_date'))
+
+    events_and_bookings = []
+
+    for event in events:
+        new = Event_Tuple(event.date, event.description)
+        events_and_bookings.append(new)
+
+    for booking in bookings:
+        new = Event_Tuple(booking.start_date, "Dog Booking: " + booking.dog.name)
+        events_and_bookings.append(new)
+
+    events_and_bookings = sorted(events_and_bookings, key=lambda e: e.date)
+
+    for item in events_and_bookings:
+        print(item)
+
+    count = len(events_and_bookings)
+
+    context = {'objects': events_and_bookings, "count": count, 'title': "Events"}
+    return render(request, 'events.html', context)

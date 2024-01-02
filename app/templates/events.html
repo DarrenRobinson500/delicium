@@ -1,0 +1,48 @@
+{% extends 'base.html'%}
+{% block content %}
+
+    <h1>{{ title }}</h1>
+    <form action="{% url 'events' %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        <table class="table-primary">
+            <tbody>
+                <td>
+                    <label class="form-label">Description</label>
+                    <input type="text" name="description" class="form-control" style="min-width:200px">
+                </td>
+                <td class="p-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" style="min-width:200px">
+                </td>
+                <td>
+                    <p></p>
+                    <button type="submit" class="btn btn-yak">Add event</button>
+                </td>
+            </tbody>
+
+
+        </table>
+    </form>
+    <hr>
+
+<h2>There are {{ count }} {{ title}}</h2>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Event</th>
+      <th scope="col">Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in objects %}
+    <tr {% if item.next_one %} style="background-color: #ffc0cb"{% endif %}>
+        <td>{{ item.description }}</td>
+        <td>{{ item.date }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+
+{% endblock %}

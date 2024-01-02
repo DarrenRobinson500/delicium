@@ -1,10 +1,15 @@
 from django.forms import *
 from .models import *
 
+class EventForm(ModelForm):
+    class Meta:
+        model = Event
+        fields = ['description', 'date',]
+
 class DogForm(ModelForm):
     class Meta:
         model = Dog
-        fields = ['name', 'owners', 'image']
+        fields = ['name', 'owners', 'notes', 'image']
 
 class BookingForm(ModelForm):
     class Meta:

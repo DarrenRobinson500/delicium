@@ -9,6 +9,6 @@
     </form>
     <hr>
     {% for quote in quotes %}
-    <p>{{ quote.quote }}</p>
+    <p>{{ quote.quote }} [{{quote.date}}]</p>
     {% endfor %}
 {% endblock %}

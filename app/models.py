@@ -1,19 +1,33 @@
 from django.db import models
 from django.db.models import *
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from django.db.models.functions import ExtractMonth, ExtractDay
 
+
+class Event(Model):
+    description = TextField(null=True, blank=True)
+    date = DateField(auto_now=False, null=True)
+    def __str__(self): return "[" + str(self.date) + "] " + self.description[0:50]
 
 class Dog(Model):
     name = TextField(null=True, blank=True)
     owners = TextField(null=True, blank=True)
+    notes = TextField(null=True, blank=True)
     image = ImageField(null=True, blank=True, upload_to="images/")
     def __str__(self):
         return self.name
 
     def bookings(self):
         bookings = Booking.objects.filter(dog=self)
+        # print(self, bookings)
         return bookings
+
+    def next_booking(self):
+        today = date.today()
+        bookings = Booking.objects.filter(dog=self).filter(start_date__gte=today).order_by('start_date')
+        if bookings: return bookings[0].start_date
+        return today + timedelta(days=360)
+
 
 class Booking(Model):
     dog = ForeignKey(Dog, on_delete=CASCADE)
@@ -21,7 +35,13 @@ class Booking(Model):
     end_date = DateField(null=True)
 
     def __str__(self):
-        return f"{self.start_date} to {self.end_date} {self.nights()}"
+        return f"{self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
+
+    def description(self):
+        return self.dog
+
+    def date(self):
+        return self.start_date
 
     def nights(self):
         try:
@@ -30,6 +50,8 @@ class Booking(Model):
         except:
             nights = ""
         return nights
+
+
 
 class Category(Model):
     name = TextField(null=True, blank=True)
@@ -86,6 +108,7 @@ class Note(Model):
 class Quote(Model):
     quote = TextField(null=True, blank=True)
     category = TextField(null=True, blank=True)
+    date = DateField(auto_now_add=True, null=True)
 
     def __str__(self):
         return self.quote
@@ -152,4 +175,4 @@ def get_birthday_reminders():
             text += f"It is {object.person}'s birthday today. "
     return text
 
-all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking]
+all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event]

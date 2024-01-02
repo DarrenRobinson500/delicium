@@ -19,6 +19,9 @@ from django.urls import path
 from app.views import *
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic.base import RedirectView
+
+favicon_view = RedirectView.as_view(url='/static/pinkyak.ico', permanent=True)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,10 +34,12 @@ urlpatterns = [
     path("booking<id>", booking, name="booking"),
     path("quotes", quotes, name="quotes"),
     path("birthdays", birthdays, name="birthdays"),
+    path("events", events, name="events"),
     path("notes", notes, name="notes"),
     path("note<id>", note, name="note"),
     path("up<id>", up, name="up"),
     path("down<id>", down, name="down"),
     path("delete_note<id>", delete_note, name="delete_note"),
     path("new_category", new_category, name="new_category"),
+    path('pinkyak.ico', favicon_view),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
