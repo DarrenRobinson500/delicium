@@ -1,6 +1,16 @@
 from django.forms import *
 from .models import *
 
+class DogForm(ModelForm):
+    class Meta:
+        model = Dog
+        fields = ['name', 'owners', 'image']
+
+class BookingForm(ModelForm):
+    class Meta:
+        model = Booking
+        fields = ['start_date', 'end_date']
+
 class CategoryForm(ModelForm):
     class Meta:
         model = Category

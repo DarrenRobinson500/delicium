@@ -1,0 +1,69 @@
+
+{% extends 'base.html'%}
+{% block content %}
+
+     <h1 class="form-label">{{ title }}</h1><br>
+
+     <form action="{% url 'dogs' %}" class="form-inline my-2 my-lg-0" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <table class="table-primary">
+            <tbody>
+                <td>
+                    <label class="form-label">Dog's name</label>
+                    <input type="text" name="name" class="form-control" style="min-width:200px">
+                </td>
+                <td class="p-3">
+                    <label class="form-label">Owners</label>
+                    <input type="text" name="owners" class="form-control" style="min-width:200px">
+                </td>
+                <td class="p-3">
+                    <label class="form-label">Picture</label>
+                    <input type="file" name="image" class="form-control" style="min-width:200px" accept="image/*">
+                </td>
+                <td>
+                    <p></p>
+                    <button type="submit" class="btn btn-yak">Add dog</button>
+                </td>
+            </tbody>
+
+
+        </table>
+     </form>
+
+     <hr>
+
+     <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Dogs</th>
+          <th scope="col">Owners</th>
+          <th scope="col">Image</th>
+          <th>Bookings</th>
+        </tr>
+      </thead>
+     <tbody>
+        {% for item in objects %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.owners }}</td>
+            <td>
+                {% if item.image %}
+                <img src="{{ item.image.url }}" height="120"/>
+                {% endif %}
+            </td>
+            <td>
+                {% for booking in item.bookings %}
+                {{ booking }}<br>
+                {% endfor %}
+                <a class="btn btn-yak" href="{% url 'booking' item.id %}">Add booking</a>
+            </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+
+
+
+{% endblock %}

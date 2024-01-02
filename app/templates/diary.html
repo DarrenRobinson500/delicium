@@ -1,11 +1,11 @@
 {% extends 'base.html'%}
 {% block content %}
 
-     <h1 class="form-label">Diary</h1><br>
+     <h1 class="form-label">{{ title }}</h1><br>
      <form action="{% url 'diary' %}" class="form-inline my-2 my-lg-0" method="POST">
         {% csrf_token %}
-        <textarea name="text" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea><br>
-        <button type="submit" class="btn btn-primary">Add diary entry</button>
+        <textarea name="text" class="form-control" rows="3"></textarea><br>
+        <button type="submit" class="btn btn-yak">Add diary entry</button>
      </form>
 
      <hr>
@@ -21,7 +21,7 @@
         {% for item in objects %}
         <tr>
             <td>[{{ item.date }}] {{ item.text }}</td>
-            <td><a class="btn btn-danger" href="{% url 'delete_note' item.id %}">Delete</a></td>
+            <td><a class="btn btn-yak" href="{% url 'delete_note' item.id %}">Delete</a></td>
         </tr>
         {% endfor %}
       </tbody>

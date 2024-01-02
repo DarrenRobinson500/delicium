@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app.views import *
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +27,8 @@ urlpatterns = [
     path('logout/', logout_user, name="logout"),
     path("home", home, name="home"),
     path("diary", diary, name="diary"),
+    path("dogs", dogs, name="dogs"),
+    path("booking<id>", booking, name="booking"),
     path("quotes", quotes, name="quotes"),
     path("birthdays", birthdays, name="birthdays"),
     path("notes", notes, name="notes"),
@@ -33,4 +37,4 @@ urlpatterns = [
     path("down<id>", down, name="down"),
     path("delete_note<id>", delete_note, name="delete_note"),
     path("new_category", new_category, name="new_category"),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

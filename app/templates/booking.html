@@ -1,0 +1,44 @@
+{% extends 'base.html'%}
+
+
+{% block content %}
+
+    <h1>{{ title }}</h1>
+    <form action="{% url 'booking' dog.id %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        <table class="table-primary">
+            <tbody>
+                <td class="p-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-control" style="min-width:200px">
+                </td>
+                <td class="p-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-control" style="min-width:200px">
+                </td>
+                <td>
+                    <p></p>
+                    <button type="submit" class="btn btn-yak">Add booking</button>
+                </td>
+            </tbody>
+        </table>
+    </form>
+    <hr>
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+                {{ field.name }} {{ error|escape }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+{% endblock %}

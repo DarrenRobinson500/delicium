@@ -4,6 +4,33 @@ from datetime import datetime
 from django.db.models.functions import ExtractMonth, ExtractDay
 
 
+class Dog(Model):
+    name = TextField(null=True, blank=True)
+    owners = TextField(null=True, blank=True)
+    image = ImageField(null=True, blank=True, upload_to="images/")
+    def __str__(self):
+        return self.name
+
+    def bookings(self):
+        bookings = Booking.objects.filter(dog=self)
+        return bookings
+
+class Booking(Model):
+    dog = ForeignKey(Dog, on_delete=CASCADE)
+    start_date = DateField(null=True)
+    end_date = DateField(null=True)
+
+    def __str__(self):
+        return f"{self.start_date} to {self.end_date} {self.nights()}"
+
+    def nights(self):
+        try:
+            nights = (self.end_date - self.start_date).days
+            nights = f"({nights} nights)"
+        except:
+            nights = ""
+        return nights
+
 class Category(Model):
     name = TextField(null=True, blank=True)
     def __str__(self):
@@ -12,7 +39,7 @@ class Category(Model):
 class Diary(Model):
     text = TextField(null=True, blank=True)
     date = DateField(auto_now_add=True, null=True)
-    def __str__(self): return str(self.date)
+    def __str__(self): return "[" + str(self.date) + "] " + self.text[0:50]
 
 class Note(Model):
     text = TextField(null=True, blank=True)
@@ -103,7 +130,6 @@ class Birthday(Model):
         return self.next_age_days() == min_days_to_birthday()
 
 
-all_models = [Category, Diary, Note, Quote, Birthday]
 
 
 def min_days_to_birthday():
@@ -126,3 +152,4 @@ def get_birthday_reminders():
             text += f"It is {object.person}'s birthday today. "
     return text
 
+all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking]

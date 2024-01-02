@@ -1,5 +1,8 @@
 {% extends 'base.html'%}
+
+
 {% block content %}
+
     <h1>{{ title }}</h1>
     <form action="{% url 'birthdays' %}" class="form-inline my-2 my-lg-0" method="POST">
         {% csrf_token %}
@@ -9,13 +12,13 @@
                     <label class="form-label">Person</label>
                     <input type="text" name="person" class="form-control" style="min-width:200px">
                 </td>
-                <td>
+                <td class="p-3">
                     <label class="form-label">Birthday</label>
                     <input type="date" name="date" class="form-control" style="min-width:200px">
                 </td>
                 <td>
                     <p></p>
-                    <button type="submit" class="btn btn-primary">Add birthday</button>
+                    <button type="submit" class="btn btn-yak">Add birthday</button>
                 </td>
             </tbody>
 
@@ -35,7 +38,7 @@
   </thead>
   <tbody>
     {% for item in objects %}
-    <tr {% if item.next_one %} class="table-danger" {% endif %}>
+    <tr {% if item.next_one %} style="background-color: #ffc0cb"{% endif %}>
         <td>{{ item.person }}</td>
         <td>{{ item.date }}</td>
         <td>{{ item.next_age }}</td>

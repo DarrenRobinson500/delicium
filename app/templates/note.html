@@ -24,7 +24,7 @@
                             </select>
                         </td>
                         <td class="p-3">
-                            <button type="submit" class="btn btn-primary">Add note</button>
+                            <button type="submit" class="btn btn-yak">Add note</button>
 
                         </td>
                     </tbody>
@@ -46,13 +46,13 @@
             {% endifchanged %}
             <tr class="d-flex">
                 <td class="col-1">
-                    <a class="btn btn-info" href="{% url 'up' item.id %}">U</a>
-                    <a class="btn btn-info" href="{% url 'down' item.id %}">D</a>
+                    <a class="btn btn-yak" href="{% url 'up' item.id %}">U</a>
+                    <a class="btn btn-yak" href="{% url 'down' item.id %}">D</a>
                 </td>
                 <td class="col-9">{{ item.chain }} <a href="{% url 'note' item.id %}">{{ item.text }}</a></td>
                 <td class="col-2">
-                    <a class="btn btn-primary" href="{% url 'note' item.id %}">Select</a>
-                    <a class="btn btn-danger" href="{% url 'delete_note' item.id %}">Delete</a>
+                    <a class="btn btn-yak" href="{% url 'note' item.id %}">Select</a>
+                    <a class="btn btn-yak" href="{% url 'delete_note' item.id %}">Delete</a>
                 </td>
             </tr>
         {% endfor %}

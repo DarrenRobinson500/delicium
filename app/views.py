@@ -6,8 +6,7 @@ from .forms import *
 
 def home(request):
     if not request.user.is_authenticated: return redirect("login")
-    context = {}
-    return render(request, 'home.html', context)
+    return redirect("diary")
 
 def login_user(request):
     if request.method == "POST":
@@ -28,6 +27,34 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect("login")
+
+def dogs(request):
+    if not request.user.is_authenticated: return redirect("login")
+    form = None
+    if request.method == 'POST':
+        form = DogForm(request.POST, request.FILES)
+        if form.is_valid(): form.save()
+    objects = Dog.objects.all()
+    count = len(objects)
+    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form}
+    return render(request, 'dog.html', context)
+
+def booking(request, id):
+    if not request.user.is_authenticated: return redirect("login")
+    dog = Dog.objects.filter(id=id).first()
+    if request.method == 'POST':
+        form = BookingForm(request.POST or None)
+        form.instance.dog = dog
+        print(form.instance)
+        if form.is_valid():
+            new_booking = form.save()
+            return redirect("dogs")
+        else:
+            context = {"dog": dog, "title": f"Booking for {dog.name}", "form": form}
+            return render(request, 'booking.html', context)
+
+    context = {"dog": dog, "title": f"Booking for {dog.name}"}
+    return render(request, 'booking.html', context)
 
 def diary(request):
     if not request.user.is_authenticated: return redirect("login")
