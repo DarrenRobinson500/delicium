@@ -139,7 +139,10 @@ def wordle(request):
         if valid:
             words.append(word)
 
-    fav_word = find_fav_word(words)
+    if len(words) == len(all_words):
+        fav_word = "slice"
+    else:
+        fav_word = find_fav_word(words)
     words.sort()
     count = len(words)
 
