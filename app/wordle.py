@@ -148,7 +148,7 @@ def wordle(request):
         fav_word = "slice"
         words_with_count = []
         for word in words:
-            words_with_count.append(Word_Tuple(word, ""))
+            words_with_count.append(Word_Tuple(word, 0))
     else:
         fav_word, words_with_count = find_fav_word(words)
     words.sort()
