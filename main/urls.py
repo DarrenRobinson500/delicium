@@ -17,11 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app.views import *
+from app.wordle import *
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
 
-favicon_view = RedirectView.as_view(url='/static/pinkyak.ico', permanent=True)
+# favicon_view = RedirectView.as_view(url='/static/pinkyak.ico', permanent=True)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -44,5 +45,8 @@ urlpatterns = [
     path("new_category", new_category, name="new_category"),
     path("clash", clash, name="clash"),
     path("hero_inc/<id>/<hero>", hero_inc, name="hero_inc"),
-    path('pinkyak.ico', favicon_view),
+    # path('pinkyak.ico', favicon_view),
+    path('wordle', wordle, name='wordle'),
+    path('wordle/<entry>', wordle, name='wordle'),
+    path('clear', clear, name='clear')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
