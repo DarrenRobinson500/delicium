@@ -54,8 +54,8 @@
         Count: {{ count }} <br>
         Favourite Word: {{ fav_word }}<br>
         <br>
-        {% for x in words %}
-            {{ x }} <br>
+        {% for x in words_with_count %}
+            {{ x.word }} ({{ x.count }})<br>
         {% endfor %}<br>
         <a href="{% url 'clear' %}" class='btn btn-outline-secondary btn-sm'>Clear</a><br>
     </div>
