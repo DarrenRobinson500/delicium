@@ -1,5 +1,6 @@
 from django.forms import *
 from .models import *
+from ckeditor.widgets import CKEditorWidget
 
 class EventForm(ModelForm):
     class Meta:
@@ -25,11 +26,21 @@ class DiaryForm(ModelForm):
     class Meta:
         model = Diary
         fields = ['text', ]
+        labels = {'text': "",}
 
 class NoteForm(ModelForm):
     class Meta:
         model = Note
-        fields = ['text', 'parent', 'category']
+        fields = ['heading', 'text', 'category']
+        labels = {
+            'heading': "",
+            'text': "",
+            'category': "",
+        }
+        widgets = {
+            'heading': TextInput(attrs={'class':'form-control', 'placeholder': "Heading"}),
+            'category': Select(attrs={'class': 'form-control'}),
+        }
 
 class QuoteForm(ModelForm):
     class Meta:

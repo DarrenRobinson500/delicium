@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import *
 from datetime import datetime, date, timedelta
 from django.db.models.functions import ExtractMonth, ExtractDay
-
+from ckeditor.fields import RichTextField
 
 class Event(Model):
     description = TextField(null=True, blank=True)
@@ -36,7 +36,7 @@ class Booking(Model):
 
     def __str__(self):
         try:
-            return f"{self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
+            return f"{self.dog}: {self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
         except:
             return f"{self.start_date} to {self.end_date} {self.nights()}"
 
@@ -65,7 +65,9 @@ class Category(Model):
         return self.name
 
 class Diary(Model):
-    text = TextField(null=True, blank=True)
+    # text = TextField(null=True, blank=True)
+    text = RichTextField(null=True, blank=True)
+
     date = DateField(auto_now_add=True, null=True)
 
     class Meta:
@@ -74,22 +76,23 @@ class Diary(Model):
     def __str__(self): return "[" + str(self.date) + "] " + self.text[0:50]
 
 class Note(Model):
-    text = TextField(null=True, blank=True)
+    heading = TextField(null=True, blank=True)
+    text = RichTextField(null=True, blank=True)
     category = ForeignKey(Category, null=True, blank=True, on_delete=SET_NULL)
     parent = ForeignKey('self', null=True, blank=True, on_delete=CASCADE)
     date = DateField(auto_now_add=True, null=True)
     order = IntegerField(null=True, blank=True)
     def __str__(self):
         if self.category:
-            cat = f"({self.category})"
+            cat = f" ({self.category})"
         else:
-            cat = "(No category)"
+            cat = ""
         if self.parent:
             chn = self.chain() + " "
         else:
             chn = ""
 
-        return f"{chn}{self.text} {cat}"
+        return f"{chn}{self.heading}{cat}"
 
     def parent_text(self):
         if self.parent: return f"[{self.parent}]"
@@ -113,7 +116,8 @@ class Note(Model):
         if children[0].order: return children[0].order
         return 0
 
-
+    def children(self):
+        return Note.objects.filter(parent=self).order_by("-order")
 
 class Quote(Model):
     quote = TextField(null=True, blank=True)
@@ -191,6 +195,15 @@ class Player(Model):
     def total_perc(self):
         # return int(round((self.king + self.queen + self.warden + self.champ) / self.th.total(), 2) * 100)
         return self.th.total() - (self.king + self.queen + self.warden + self.champ)
+
+    def king_highlight(self):
+        return self.th.king_max - self.king > 5
+    def queen_highlight(self):
+        return self.th.queen_max - self.queen > 5
+    def warden_highlight(self):
+        return self.th.warden_max - self.warden > 5
+    def champ_highlight(self):
+        return self.th.champ_max - self.champ > 5
 
 
 

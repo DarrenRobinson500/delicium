@@ -1,36 +1,23 @@
 {% extends 'base.html'%}
 {% block content %}
 
-    <h1>{{ object }}</h1>
+    <h1>{{ object | safe }}</h1>
+    <p>{{ object.text | safe }}</p>
+
     {% if object.parent %}
-        Parent: <a href="{% url 'note' object.parent.id %}">{{ object.parent_text }}</a>
+        Parent: <a href="{% url 'note' object.parent.id %}">{{ object.parent_text }}</a><br>
     {% endif %}
+    <a href="{% url 'edit_note' object.id %}">edit</a>
 
-            <h3>Create Note</h3>
-             <form action="{% url 'note' object.id %}" class="form-inline my-2 my-lg-0" method="POST">
-                {% csrf_token %}
-                 <textarea name="text" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea><br>
-                <table class="table-primary">
-                    <tbody>
-                        <td class="p-3">
-                            <label class="form-label">Category:</label>
-                        </td>
-                        <td class="p-3">
-                            <select class="form-select" name="category" id="id_category" aria-label=".form-select-lg example">
-                              <option selected>[Select]</option>
-                                 {% for category in categories %}
-                                    <option value='{{category.id}}'>{{ category.name }}</option>
-                                 {% endfor %}
-                            </select>
-                        </td>
-                        <td class="p-3">
-                            <button type="submit" class="btn btn-yak">Add note</button>
+    <h3>Create Note</h3>
+     <form action="{% url 'note' object.id %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        {{ form.media }}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-yak">Add note</button>
+    </form>
 
-                        </td>
-                    </tbody>
-                </table>
-                <p></p>
-            </form>
+
 <hr>
     <table class="table">
       <tbody>
@@ -49,7 +36,13 @@
                     <a class="btn btn-yak" href="{% url 'up' item.id %}">U</a>
                     <a class="btn btn-yak" href="{% url 'down' item.id %}">D</a>
                 </td>
-                <td class="col-9">{{ item.chain }} <a href="{% url 'note' item.id %}">{{ item.text }}</a></td>
+                <td class="col-9">{{ item.chain }} <a href="{% url 'note' item.id %}">{{ item.heading }}</a><br>
+                    {{ item.text | safe }}
+                    {% for child in item.children %}
+                     - <a href="{% url 'note' child.id %}">{{ child }}</a><br>
+                    {% endfor %}
+
+                </td>
                 <td class="col-2">
                     <a class="btn btn-yak" href="{% url 'note' item.id %}">Select</a>
                     <a class="btn btn-yak" href="{% url 'delete_note' item.id %}">Delete</a>

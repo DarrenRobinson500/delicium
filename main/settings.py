@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'ckeditor',
     'app',
 ]
 
@@ -83,6 +84,23 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'main.wsgi.application'
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'height': 70,
+        'width': 'full',
+        'toolbar_Custom': [
+            ['Bold', 'Strike'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['TextColor', 'BGColor', ],
+            # ['Link', 'Unlink'],
+            # ['RemoveFormat', 'Source']
+        ]
+    }
+}
+
 
 # Database
 DB_PASSWORD = read_file("db_password")

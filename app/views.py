@@ -82,6 +82,7 @@ def diary(request):
     if request.method == 'POST':
         form = DiaryForm(request.POST or None)
         if form.is_valid(): form.save()
+    form = DiaryForm()
     objects = Diary.objects.all().order_by("-date")
     count = len(objects)
     context = {'objects': objects, 'title': "Diary", 'count': count, "form": form}
@@ -111,9 +112,32 @@ def notes(request):
     # id = objects.id
     return redirect("note", object.id)
 
-def note(request, id):
+def edit_note(request, id):
     if not request.user.is_authenticated: return redirect("login")
     object = Note.objects.get(id=int(id))
+    if request.method == 'POST':
+        form = NoteForm(request.POST, instance=object)
+        if form.is_valid():
+            form.save()
+            # print("Note saved")
+            # for field in form:
+            #     print("Note saved:", field.name, field.value())
+
+            messages.success(request, "Note saved")
+            return redirect("note", object.id)
+        else:
+            for field in form:
+                for error in field.errors:
+                    print("Error:", field, error)
+    form = NoteForm(instance=object)
+    categories = Category.objects.all()
+    context = {'object': object, 'categories': categories, 'form': form}
+    return render(request, 'note_edit.html', context)
+
+
+def note(request, id):
+    if not request.user.is_authenticated: return redirect("login")
+    object = Note.objects.get(id=id)
     if request.method == 'POST':
         form = NoteForm(request.POST or None)
         if form.is_valid():
@@ -123,12 +147,22 @@ def note(request, id):
             new_note = Note.objects.create(text=text)
         new_note.parent = object
         new_note.save()
+    form = NoteForm()
     children = Note.objects.filter(parent=object).order_by('category', 'order')
     add_order_to_children(object)
     count = len(children)
     categories = Category.objects.all()
 
-    context = {'object': object, 'categories': categories, 'children': children, 'count': count}
+    for child in children:
+        if child.heading == None:
+            child.heading = child.text
+            child.text = ""
+            child.save()
+        if child.heading == child.text:
+            child.text = ""
+            child.save()
+
+    context = {'object': object, 'categories': categories, 'children': children, 'count': count, 'form': form}
     return render(request, 'note.html', context)
 
 def up(request, id):
@@ -186,6 +220,11 @@ def delete_note(request, id):
         return redirect("note", f"{parent.id}")
     else:
         return redirect("notes")
+
+def delete_diary(request, id):
+    object = Diary.objects.filter(id=id).first()
+    if object: object.delete()
+    return redirect("diary")
 
 
 def new_category(request):

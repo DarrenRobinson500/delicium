@@ -110,6 +110,7 @@ def potential_letters(words, pos):
     return potential_letters
 
 def wordle(request):
+    print("Start Input Array:", input_array)
     value = ["", "", "", "", "", ]
     colour = ["", "", "", "", "", ]
 
