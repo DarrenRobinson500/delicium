@@ -148,6 +148,7 @@ def note(request, id):
         new_note.parent = object
         new_note.save()
     form = NoteForm()
+    object.order_children()
     children = Note.objects.filter(parent=object).order_by('category', 'order')
     add_order_to_children(object)
     count = len(children)

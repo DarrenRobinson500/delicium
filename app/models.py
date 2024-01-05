@@ -116,8 +116,17 @@ class Note(Model):
         if children[0].order: return children[0].order
         return 0
 
-    def children(self):
-        return Note.objects.filter(parent=self).order_by("-order")
+    def order_children(self):
+        children = Note.objects.filter(parent=self).order_by("order")
+        correction_made = False
+        for count, child in enumerate(children, 1):
+            if child.order != count:
+                child.order = count
+                child.save()
+                correction_made = True
+        if correction_made:
+            children = Note.objects.filter(parent=self).order_by("order")
+        return children
 
 class Quote(Model):
     quote = TextField(null=True, blank=True)
