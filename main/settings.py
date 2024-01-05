@@ -153,6 +153,9 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'app/static'),
+    os.path.join(BASE_DIR, 'ckeditor'),
+    os.path.join(BASE_DIR, 'ckeditor_uploader'),
+
     # BASE_DIR / 'static',
 ]
 
