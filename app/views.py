@@ -31,6 +31,40 @@ def logout_user(request):
     logout(request)
     return redirect("login")
 
+def shopping(request):
+    if not request.user.is_authenticated: return redirect("login")
+    if request.method == 'POST':
+        form = ShoppingForm(request.POST)
+        if form.is_valid(): form.save()
+    shops = Shop.objects.order_by('order')
+
+    form = ShoppingForm()
+    context = {'form': form, 'shops': shops}
+    return render(request, 'shopping.html', context)
+
+def shopping_save(request):
+    if not request.user.is_authenticated: return redirect("login")
+    objects = Shopping.objects.all()
+    if request.method == 'POST':
+        print("Keys:", request.POST.keys())
+        for object in objects:
+            if f"checkbox{object.id}" in request.POST.keys():
+                object.buy = True
+            else:
+                object.buy = False
+            object.save()
+    return redirect('shopping')
+
+def shopping_clear(request):
+    if not request.user.is_authenticated: return redirect("login")
+    objects = Shopping.objects.all()
+    for object in objects:
+        object.buy = False
+        object.save()
+
+    return redirect('shopping')
+
+
 def dogs(request):
     if not request.user.is_authenticated: return redirect("login")
     form = None

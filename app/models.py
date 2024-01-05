@@ -4,6 +4,23 @@ from datetime import datetime, date, timedelta
 from django.db.models.functions import ExtractMonth, ExtractDay
 from ckeditor.fields import RichTextField
 
+class Shop(Model):
+    name = TextField(null=True, blank=True)
+    order = IntegerField(null=True, blank=True)
+    def __str__(self): return self.name
+    def items(self): return Shopping.objects.filter(shop=self).order_by("order")
+    def visible(self):
+        if len(self.items()) > 0: return True
+        return False
+
+
+class Shopping(Model):
+    name = TextField(null=True, blank=True)
+    shop = ForeignKey(Shop, null=True, blank=True, on_delete=SET_NULL)
+    buy = BooleanField(null=True,)
+    order = IntegerField(null=True, blank=True)
+    def __str__(self): return self.name
+
 class Event(Model):
     description = TextField(null=True, blank=True)
     date = DateField(auto_now=False, null=True)
@@ -65,9 +82,7 @@ class Category(Model):
         return self.name
 
 class Diary(Model):
-    # text = TextField(null=True, blank=True)
     text = RichTextField(null=True, blank=True)
-
     date = DateField(auto_now_add=True, null=True)
 
     class Meta:
@@ -127,6 +142,9 @@ class Note(Model):
         if correction_made:
             children = Note.objects.filter(parent=self).order_by("order")
         return children
+
+    def children(self):
+        return Note.objects.filter(parent=self).order_by("order")
 
 class Quote(Model):
     quote = TextField(null=True, blank=True)
@@ -236,4 +254,4 @@ def get_birthday_reminders():
             text += f"It is {object.person}'s birthday today. "
     return text
 
-all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player]
+all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop]

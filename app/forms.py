@@ -2,6 +2,14 @@ from django.forms import *
 from .models import *
 from ckeditor.widgets import CKEditorWidget
 
+class ShoppingForm(ModelForm):
+    class Meta:
+        model = Shopping
+        fields = ['name', "shop", ]
+        widgets = {
+            'name': TextInput(attrs={'class':'form-control', 'placeholder': "Item"}),
+            'shop': Select(attrs={'class': 'form-control'}),
+        }
 class EventForm(ModelForm):
     class Meta:
         model = Event

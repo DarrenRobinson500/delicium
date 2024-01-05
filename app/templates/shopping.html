@@ -1,0 +1,31 @@
+{% extends 'base.html'%}
+{% block content %}
+    <h1>Shopping</h1>
+    <h3>Create New Item</h3>
+     <form action="{% url 'shopping' %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        {{ form.media }}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-yak">Add item</button>
+    </form>
+<hr>
+     <form action="{% url 'shopping_save' %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+         <div class="row">
+         {% for shop in shops %}
+         {% if shop.visible %}
+            <div class="col-sm-2" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white;">
+                 <p><b>{{ shop }}</b></p>
+                    {% for item in shop.items %}
+                        <input type="checkbox" id="my-checkbox" name="checkbox{{ item.id }}" value="1" {% if item.buy %}checked{% endif %}>
+                        <label for="my-checkbox">{{ item }}</label><br>
+                    {% endfor %} <br>
+            </div>
+         {% endif %}
+         {% endfor %}
+         </div>
+         <button type="submit" class="btn btn-yak">Save</button> <a class="btn btn-yak" href="{% url 'shopping_clear' %}">Clear</a>
+    </form>
+
+
+{% endblock %}
