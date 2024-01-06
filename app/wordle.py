@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from collections import Counter
 from collections import namedtuple
+from itertools import *
 
 from .forms import *
 
@@ -169,3 +170,35 @@ def wordle(request):
 def clear(request):
     input_array.clear()
     return redirect("wordle")
+
+
+def word(request):
+    letters = ""
+    if request.method == 'POST':
+        letters = request.POST['text']
+        print(letters)
+    all_words = get_words(letters)
+    context = {'letters': letters, 'all_words': all_words}
+    return render(request, "word.html", context)
+
+def get_words(letters):
+    filename = "dictionary/dict.txt"
+    words = set(x.strip() for x in open(filename))
+
+    lengths = range(3, 10)
+    all_words = []
+    for length in lengths:
+        words_interim = set()
+        results = permutations(letters, length)
+        for result in results:
+            word = ""
+            for letter in result: word += letter
+            if word in words:
+                words_interim.add(word)
+
+        if len(words_interim) > 0:
+            words_interim = sorted(words_interim)
+            all_words.append(words_interim)
+
+    return all_words
+

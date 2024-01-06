@@ -1,0 +1,27 @@
+{% extends 'base.html'%}
+{% block content %}
+{% if not all_words %}
+<h1>Words</h1>
+     <form action="{% url 'word' %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        <input type="text" id="my-checkbox" name="text" class="form-control entry"><br>
+        <button type="submit" class="btn btn-yak">Get words</button>
+    </form>
+{% else %}
+<h1>{{ letters | capfirst }}</h1>
+<div class="row" style="text-align: center;">
+    {% for word_set in all_words %}
+        <div class="col-sm-2" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white;">
+            <b>{{ word_set | first | length }} letters</b><br>
+            <span class="small">{{ word_set | length }} words</span><br>
+            <hr>
+            {% for word in word_set %}
+                {{ word }}<br>
+            {% endfor %}
+        </div>
+    {% endfor %}
+ </div>
+{% endif %}
+
+
+{% endblock %}

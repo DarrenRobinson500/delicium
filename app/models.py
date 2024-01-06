@@ -13,7 +13,6 @@ class Shop(Model):
         if len(self.items()) > 0: return True
         return False
 
-
 class Shopping(Model):
     name = TextField(null=True, blank=True)
     shop = ForeignKey(Shop, null=True, blank=True, on_delete=SET_NULL)
@@ -76,6 +75,7 @@ class Booking(Model):
 
 class Category(Model):
     name = TextField(null=True, blank=True)
+    order = IntegerField(null=True, blank=True)
     class Meta:
         verbose_name_plural = "Categories"
     def __str__(self):

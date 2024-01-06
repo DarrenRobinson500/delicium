@@ -50,8 +50,8 @@ urlpatterns = [
     path("new_category", new_category, name="new_category"),
     path("clash", clash, name="clash"),
     path("hero_inc/<id>/<hero>", hero_inc, name="hero_inc"),
-    # path('pinkyak.ico', favicon_view),
     path('wordle', wordle, name='wordle'),
     path('wordle/<entry>', wordle, name='wordle'),
+    path('word', word, name='word'),
     path('clear', clear, name='clear')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
