@@ -26,7 +26,7 @@ function timer(start, end, text) {
         if (seconds === end) {
             beep();
             clearInterval(intervalId);
-            counterElement.innerHTML = "Complete";
+            counterElement.innerHTML = "Done";
         }
     }
 }
