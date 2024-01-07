@@ -213,26 +213,41 @@ class Player(Model):
     warden = IntegerField(null=True, blank=True)
     champ = IntegerField(null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.name} (Level {self.th})"
+    def __str__(self): return f"{self.name} (Level {self.th})"
+    def total(self): return self.king + self.queen + self.warden + self.champ
+    def total_perc(self): return self.th.total() - (self.king + self.queen + self.warden + self.champ)
+    def king_highlight(self): return self.th.king_max - self.king > 5
+    def queen_highlight(self): return self.th.queen_max - self.queen > 5
+    def warden_highlight(self): return self.th.warden_max - self.warden > 5
+    def champ_highlight(self): return self.th.champ_max - self.champ > 5
 
-    def total(self):
-        return self.king + self.queen + self.warden + self.champ
+class Timer(Model):
+    name = TextField(null=True, blank=True)
+    def __str__(self): return self.name
+    # def elements(self): TimerElement.objects.all()
+    def elements(self): return TimerElement.objects.filter(timer=self).order_by('order')
+    def visible(self): return True
 
-    def total_perc(self):
-        # return int(round((self.king + self.queen + self.warden + self.champ) / self.th.total(), 2) * 100)
-        return self.th.total() - (self.king + self.queen + self.warden + self.champ)
+class TimerElement(Model):
+    timer = ForeignKey(Timer, on_delete=CASCADE)
+    name = TextField(null=True, blank=True)
+    time = IntegerField(null=True, blank=True)
+    order = IntegerField(null=True, blank=True)
+    def __str__(self): return f"{self.timer}: {self.name} {self.time}"
 
-    def king_highlight(self):
-        return self.th.king_max - self.king > 5
-    def queen_highlight(self):
-        return self.th.queen_max - self.queen > 5
-    def warden_highlight(self):
-        return self.th.warden_max - self.warden > 5
-    def champ_highlight(self):
-        return self.th.champ_max - self.champ > 5
-
-
+    def short_name(self): return f"{self.name}: {self.time}sec"
+    def start(self):
+        earlier_elements = self.timer.elements().filter(order__lt=self.order)
+        delay = 0
+        for earlier_element in earlier_elements:
+            delay += earlier_element.time
+        return delay
+    def end(self):
+        earlier_elements = self.timer.elements().filter(order__lt=self.order)
+        delay = 0
+        for earlier_element in earlier_elements:
+            delay += earlier_element.time
+        return self.start() + self.time
 
 def min_days_to_birthday():
     birthday_objects = Birthday.objects.all()
@@ -254,4 +269,4 @@ def get_birthday_reminders():
             text += f"It is {object.person}'s birthday today. "
     return text
 
-all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop]
+all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement]

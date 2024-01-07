@@ -325,3 +325,17 @@ def hero_inc(request, id, hero):
         player.save()
 
     return redirect('clash')
+
+def timers(request):
+    timers = Timer.objects.all()
+    context = {'timers': timers}
+    return render(request, "timers.html", context)
+
+def timer(request, id):
+    timer = Timer.objects.get(id=id)
+    for element in timer.elements():
+        print(element)
+        print(element.short_name())
+
+    context = {'timer': timer}
+    return render(request, "timer.html", context)
