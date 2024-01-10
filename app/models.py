@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import *
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 from django.db.models.functions import ExtractMonth, ExtractDay
 from ckeditor.fields import RichTextField
 
@@ -34,7 +34,7 @@ class Dog(Model):
         return self.name
 
     def bookings(self):
-        bookings = Booking.objects.filter(dog=self)
+        bookings = Booking.objects.filter(dog=self).order_by('start_date')
         # print(self, bookings)
         return bookings
 
@@ -56,6 +56,8 @@ class Booking(Model):
         except:
             return f"{self.start_date} to {self.end_date} {self.nights()}"
 
+    def short_name(self):
+        return f"{self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
 
     def description(self):
         return self.dog
@@ -107,7 +109,7 @@ class Note(Model):
         else:
             chn = ""
 
-        return f"{chn}{self.heading}{cat}"
+        return f"{chn}{self.heading}"
 
     def parent_text(self):
         if self.parent: return f"[{self.parent}]"
@@ -158,6 +160,7 @@ class Birthday(Model):
     person = TextField(null=True, blank=True)
     date = DateField(auto_now=False, null=True)
     reminder_days = IntegerField(null=True, blank=True, default=7)
+    tag = CharField(max_length=255, default="Birthday")
 
     def __str__(self):
         return self.person
@@ -249,6 +252,35 @@ class TimerElement(Model):
             delay += earlier_element.time
         return self.start() + self.time
 
+class Tide_Date(Model):
+    date = DateField(null=True)
+    def __str__(self): return f"{self.date}"
+    def tides(self): return New_Tide.objects.filter(date=self).filter(type="low").order_by("time")
+    def max_temp(self): return MaxTemp.objects.filter(date=self.date).first()
+    def weather(self): return Weather.objects.filter(date=self).order_by("time")
+    def events(self): return Event.objects.filter(date=self.date)
+    def birthdays(self): return Birthday.objects.filter(date__month=self.date.month).filter(date__day=self.date.day)
+    def bookings(self): return Booking.objects.filter(start_date__lte=self.date).filter(end_date__gte=self.date).order_by('start_date')
+
+class New_Tide(Model):
+    date = ForeignKey(Tide_Date, on_delete=CASCADE)
+#     date = DateField(null=True)
+    time = TimeField(null=True)
+    height = FloatField()
+    type = CharField(max_length=10, null=True)
+    def __str__(self): return f"{self.date} {self.time} {self.type}"
+
+class Weather(Model):
+    date = ForeignKey(Tide_Date, on_delete=CASCADE)
+    time = TimeField(null=True)
+    precis = CharField(max_length=30, null=True)
+    def __str__(self): return f"{self.date} {self.time} {self.precis}"
+
+class MaxTemp(Model):
+    date = DateField(null=True)
+    max = IntegerField(null=True)
+    def __str__(self): return f"{self.date}: Max {self.max}"
+
 def min_days_to_birthday():
     birthday_objects = Birthday.objects.all()
     minimum = 365
@@ -269,4 +301,4 @@ def get_birthday_reminders():
             text += f"It is {object.person}'s birthday today. "
     return text
 
-all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement]
+all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement, New_Tide, Tide_Date, Weather]

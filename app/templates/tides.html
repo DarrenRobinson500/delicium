@@ -1,0 +1,40 @@
+{% extends 'base.html'%}
+{% block content %}
+<h1>Events</h1>
+    <table class="table">
+        <thead class="table-light">
+            <th>Day</th>
+            <th>Events</th>
+            <th>Dogs</th>
+            <th>Weather</th>
+            <th>Tides (Lows)</th>
+            <th></th>
+        </thead>
+
+        {% for date in tide_dates %}
+        <tr>
+            <td>{{ date.date }}</td>
+            <td>
+                {% for birthday in date.birthdays %}<b>{{ birthday.tag }}: {{ birthday }}</b><br>{% endfor %}
+                {% for event in date.events %}{{ event.description }}<br>{% endfor %}
+            </td>
+            <td>
+                {% for booking in date.bookings %} {{ booking.dog }}<br>{% endfor %}
+            </td>
+            <td>
+                {% if date.max_temp %} <b>Max: {{ date.max_temp.max }}&deg;</b><br>{% endif %}
+                {% for weather in date.weather %}
+                    {{ weather.time }}: {{ weather.precis }}<br>
+                {% endfor %}
+            </td>
+
+            <td>
+            {% for tide in date.tides %}
+                {{ tide.time }}<br>
+            {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

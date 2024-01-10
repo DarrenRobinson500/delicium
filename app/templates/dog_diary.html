@@ -1,0 +1,26 @@
+{% extends 'base.html'%}
+{% block content %}
+<h1>Dog Diary</h1>
+
+    <table class="table">
+        <thead class="table-light">
+            <th>Day</th>
+            <th>Count</th>
+            <th>Dogs</th>
+        </thead>
+
+        {% for entry in dog_diary %}
+        <tr>
+            <td>{{ entry.date |date:"j M - D"}}</td>
+            <td>{{ entry.bookings | length }}</td>
+            <td>
+                {% for booking in entry.bookings %}
+                {{ booking.dog }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+
+{% endblock %}

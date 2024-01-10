@@ -2,11 +2,12 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from collections import namedtuple
+import requests
 
 from .forms import *
 
 Event_Tuple = namedtuple('Event_Tuple', ['date', 'description'])
-
+Dog_Diary = namedtuple('Dog_Diary', ['date', 'bookings'])
 
 def home(request):
     if not request.user.is_authenticated: return redirect("login")
@@ -92,6 +93,23 @@ def dog_edit(request, id):
     count = len(objects)
     context = {'objects': objects, 'title': "Dogs", 'count': count, "dog": dog, "edit_mode": True}
     return render(request, 'dog.html', context)
+
+def dog_diary(request):
+    if not request.user.is_authenticated: return redirect("login")
+    today = date.today()
+    bookings = Booking.objects.filter(end_date__gte=today).order_by('start_date')
+    dog_diary = []
+    for x in range(100):
+        day = today + timedelta(days=x)
+        day_bookings = bookings.filter(start_date__lte=day).filter(end_date__gte=day)
+        new = Dog_Diary(day, day_bookings)
+        dog_diary.append(new)
+    print(dog_diary)
+    context = {'dog_diary': dog_diary}
+    return render(request, 'dog_diary.html', context)
+
+
+
 
 def booking(request, id):
     if not request.user.is_authenticated: return redirect("login")
@@ -278,7 +296,6 @@ def birthdays(request):
     context = {'objects': objects, "count": count, "min_days": min_days_to_birthday(), 'title': "Birthdays"}
     return render(request, 'birthdays.html', context)
 
-Event_Tuple = namedtuple('Event_Tuple', ['date', 'description'])
 
 def events(request):
     if request.method == 'POST':
@@ -288,6 +305,7 @@ def events(request):
     today = date.today()
     events = Event.objects.filter(date__gte=today).order_by(ExtractMonth('date'), ExtractDay('date'))
     bookings = Booking.objects.filter(start_date__gte=today).order_by(ExtractMonth('start_date'), ExtractDay('start_date'))
+    birthdays = Birthday.objects.all()
 
     events_and_bookings = []
 
@@ -298,6 +316,11 @@ def events(request):
     for booking in bookings:
         new = Event_Tuple(booking.start_date, "Dog Booking: " + booking.dog.name)
         events_and_bookings.append(new)
+
+    for birthday in birthdays:
+        if birthday.next_age_days() < 60:
+            new = Event_Tuple(today + timedelta(days=birthday.next_age_days()), "Birthday: " + str(birthday))
+            events_and_bookings.append(new)
 
     events_and_bookings = sorted(events_and_bookings, key=lambda e: e.date)
 
@@ -339,3 +362,79 @@ def timer(request, id):
 
     context = {'timer': timer}
     return render(request, "timer.html", context)
+
+def get_tides():
+    key = 'ZmY5ZDcxZGQwMzBhNmE3NzY4YTI4Mj'
+    location = 3212
+
+    url = f'https://api.willyweather.com.au/v2/{key}/locations/{location}/weather.json'
+    params = [("forecasts", ["tides"]), ("days", 31)]
+    resp = requests.get(url, params=params, timeout=10).json()
+
+    tidal_data = resp['forecasts']['tides']['days']
+    for day in tidal_data:
+        for peak in day['entries']:
+            date_time_obj = datetime.strptime(peak['dateTime'], '%Y-%m-%d %H:%M:%S')
+            date = date_time_obj.date()
+            date_object = Tide_Date.objects.filter(date=date).first()
+            if date_object is None:
+                date_object = Tide_Date(date=date)
+                date_object.save()
+            new_object = New_Tide(date=date_object, time=date_time_obj.time(), height=peak['height'], type=peak['type'])
+            new_object.save()
+
+def get_weather():
+    key = 'ZmY5ZDcxZGQwMzBhNmE3NzY4YTI4Mj'
+    location = 3212
+    url = f'https://api.willyweather.com.au/v2/{key}/locations/{location}/weather.json'
+    params = [("forecasts", ["precis"]), ("days", 4)]
+    resp = requests.get(url, params=params, timeout=10).json()
+
+    data = resp['forecasts']['precis']['days']
+    for day in data:
+        for entry in day['entries']:
+            date_time_obj = datetime.strptime(entry['dateTime'], '%Y-%m-%d %H:%M:%S')
+            date = date_time_obj.date()
+            date_object = Tide_Date.objects.filter(date=date).first()
+            if date_object is None:
+                date_object = Tide_Date(date=date)
+                date_object.save()
+            existing = Weather.objects.filter(date=date_object).filter(time=date_time_obj.time()).first()
+            if not existing:
+                if time(8, 0) <= date_time_obj.time() <= time(17, 0):
+                    new_object = Weather(date=date_object, time=date_time_obj.time(), precis=entry['precis'])
+                    new_object.save()
+
+    params = [("forecasts", ["weather"]), ("days", 4)]
+    resp = requests.get(url, params=params, timeout=10).json()
+    data = resp['forecasts']['weather']['days']
+    for day in data:
+        for entry in day['entries']:
+            date_time_obj = datetime.strptime(entry['dateTime'], '%Y-%m-%d %H:%M:%S')
+            date = date_time_obj.date()
+            date_object = Tide_Date.objects.filter(date=date).first()
+            if date_object is None:
+                date_object = Tide_Date(date=date)
+                date_object.save()
+            existing = MaxTemp.objects.filter(date=date).first()
+            if not existing:
+                new_object = MaxTemp(date=date, max=entry['max'])
+                new_object.save()
+
+
+def tides(request):
+    today = date.today()
+
+    # Weather
+    end_date = today + timedelta(days=4)
+    weather_check = Tide_Date.objects.filter(date=end_date).first().weather()
+    if not weather_check: get_weather()
+
+    # Tides
+    end_date = today + timedelta(days=20)
+    tide_check = Tide_Date.objects.filter(date=end_date).first().tides()
+    if len(tide_check) == 0: get_tides()
+
+    tide_dates = Tide_Date.objects.filter(date__lte=end_date).filter(date__gte=today).order_by('date')
+    context = {'tide_dates': tide_dates}
+    return render(request, 'tides.html', context)

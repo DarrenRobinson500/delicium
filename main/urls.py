@@ -36,6 +36,7 @@ urlpatterns = [
     path("diary", diary, name="diary"),
     path("dogs", dogs, name="dogs"),
     path("dog_edit<id>", dog_edit, name="dog_edit"),
+    path("dog_diary", dog_diary, name="dog_diary"),
     path("booking<id>", booking, name="booking"),
     path("quotes", quotes, name="quotes"),
     path("birthdays", birthdays, name="birthdays"),
@@ -56,4 +57,6 @@ urlpatterns = [
     path('clear', clear, name='clear'),
     path('timers', timers, name='timers'),
     path('timer/<id>', timer, name='timer'),
+    path('tides', tides, name='tides'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

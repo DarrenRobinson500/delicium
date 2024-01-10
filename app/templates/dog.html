@@ -7,7 +7,9 @@
     {% if edit_mode %}
      <form action="{% url 'dog_edit' dog.id %}" class="form-inline my-2 my-lg-0" method="POST" enctype="multipart/form-data">
     {% else %}
+     <a href="{% url 'dog_diary' %}">Diary</a>
      <form action="{% url 'dogs' %}" class="form-inline my-2 my-lg-0" method="POST" enctype="multipart/form-data">
+
      {% endif %}
         {% csrf_token %}
 
@@ -54,7 +56,7 @@
           <th scope="col">Owners</th>
           <th scope="col">Notes</th>
           <th scope="col">Image</th>
-          <th>Bookings</th>
+          <th style="min-width: 250px;">Bookings</th>
         </tr>
       </thead>
      <tbody>
@@ -70,7 +72,7 @@
             </td>
             <td>
                 {% for booking in item.bookings %}
-                {{ booking }}<br>
+                {{ booking.short_name }}<br>
                 {% endfor %}
                 <a class="btn btn-yak btn-sm" href="{% url 'booking' item.id %}">Add booking</a>
             </td>
