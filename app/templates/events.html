@@ -25,24 +25,42 @@
     </form>
     <hr>
 
-<h2>There are {{ count }} {{ title}}</h2>
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">Event</th>
-      <th scope="col">Date</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for item in objects %}
-    <tr {% if item.next_one %} style="background-color: #ffc0cb"{% endif %}>
-        <td>{{ item.description }}</td>
-        <td>{{ item.date }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    <table class="table">
+        <thead class="table-light">
+            <th>Day</th>
+            <th>Events</th>
+            <th>Dogs</th>
+            <th>Weather</th>
+            <th>Tides (Lows)</th>
+            <th></th>
+        </thead>
 
+        {% for date in tide_dates %}
+        <tr>
+            <td>{{ date.date }}</td>
+            <td>
+                {% for birthday in date.birthdays %}<b>{{ birthday.tag }}: {{ birthday }}</b><br>{% endfor %}
+                {% for event in date.events %}{{ event.description }}<br>{% endfor %}
+                {% for note in date.notes %}<a href="{% url 'note' note.id %}">{{ note.heading }}</a><br>{% endfor %}
+            </td>
+            <td>
+                {% for booking in date.bookings %} {{ booking.dog }}<br>{% endfor %}
+            </td>
+            <td>
+                {% if date.max_temp %} <b>Max: {{ date.max_temp.max }}&deg;</b><br>{% endif %}
+                {% for weather in date.weather %}
+                    {{ weather.time }}: {{ weather.precis }}<br>
+                {% endfor %}
+            </td>
+
+            <td>
+            {% for tide in date.tides %}
+                {{ tide.time }}<br>
+            {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
 
 
 {% endblock %}

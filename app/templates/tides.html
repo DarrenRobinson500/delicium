@@ -17,6 +17,7 @@
             <td>
                 {% for birthday in date.birthdays %}<b>{{ birthday.tag }}: {{ birthday }}</b><br>{% endfor %}
                 {% for event in date.events %}{{ event.description }}<br>{% endfor %}
+                {% for note in date.notes %}<a href="{% url 'note' note.id %}">{{ note.heading }}</a><br>{% endfor %}
             </td>
             <td>
                 {% for booking in date.bookings %} {{ booking.dog }}<br>{% endfor %}

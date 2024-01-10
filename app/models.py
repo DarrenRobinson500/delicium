@@ -5,6 +5,7 @@ from django.db.models.functions import ExtractMonth, ExtractDay
 from ckeditor.fields import RichTextField
 
 class Shop(Model):
+    string_name = "Shop"
     name = TextField(null=True, blank=True)
     order = IntegerField(null=True, blank=True)
     def __str__(self): return self.name
@@ -14,6 +15,7 @@ class Shop(Model):
         return False
 
 class Shopping(Model):
+    string_name = "Shopping"
     name = TextField(null=True, blank=True)
     shop = ForeignKey(Shop, null=True, blank=True, on_delete=SET_NULL)
     buy = BooleanField(null=True,)
@@ -21,11 +23,13 @@ class Shopping(Model):
     def __str__(self): return self.name
 
 class Event(Model):
+    string_name = "Event"
     description = TextField(null=True, blank=True)
     date = DateField(auto_now=False, null=True)
     def __str__(self): return "[" + str(self.date) + "] " + self.description[0:50]
 
 class Dog(Model):
+    string_name = "Dog"
     name = TextField(null=True, blank=True)
     owners = TextField(null=True, blank=True)
     notes = TextField(null=True, blank=True)
@@ -46,6 +50,7 @@ class Dog(Model):
 
 
 class Booking(Model):
+    string_name = "Booking"
     dog = ForeignKey(Dog, on_delete=CASCADE)
     start_date = DateField(null=True)
     end_date = DateField(null=True)
@@ -76,6 +81,7 @@ class Booking(Model):
 
 
 class Category(Model):
+    string_name = "Category"
     name = TextField(null=True, blank=True)
     order = IntegerField(null=True, blank=True)
     class Meta:
@@ -84,6 +90,7 @@ class Category(Model):
         return self.name
 
 class Diary(Model):
+    string_name = "Diary"
     text = RichTextField(null=True, blank=True)
     date = DateField(auto_now_add=True, null=True)
 
@@ -93,17 +100,15 @@ class Diary(Model):
     def __str__(self): return "[" + str(self.date) + "] " + self.text[0:50]
 
 class Note(Model):
+    string_name = "Note"
     heading = TextField(null=True, blank=True)
     text = RichTextField(null=True, blank=True)
     category = ForeignKey(Category, null=True, blank=True, on_delete=SET_NULL)
     parent = ForeignKey('self', null=True, blank=True, on_delete=CASCADE)
     date = DateField(auto_now_add=True, null=True)
+    note_date = DateField(null=True)
     order = IntegerField(null=True, blank=True)
     def __str__(self):
-        if self.category:
-            cat = f" ({self.category})"
-        else:
-            cat = ""
         if self.parent:
             chn = self.chain() + " "
         else:
@@ -149,6 +154,7 @@ class Note(Model):
         return Note.objects.filter(parent=self).order_by("order")
 
 class Quote(Model):
+    string_name = "Quote"
     quote = TextField(null=True, blank=True)
     category = TextField(null=True, blank=True)
     date = DateField(auto_now_add=True, null=True)
@@ -157,6 +163,7 @@ class Quote(Model):
         return self.quote
 
 class Birthday(Model):
+    string_name = "Birthday"
     person = TextField(null=True, blank=True)
     date = DateField(auto_now=False, null=True)
     reminder_days = IntegerField(null=True, blank=True, default=7)
@@ -197,6 +204,7 @@ class Birthday(Model):
         return self.next_age_days() == min_days_to_birthday()
 
 class TH(Model):
+    string_name = "TH"
     level = IntegerField(null=True, blank=True)
     king_max = IntegerField(null=True, blank=True)
     queen_max = IntegerField(null=True, blank=True)
@@ -208,6 +216,7 @@ class TH(Model):
         return self.king_max + self.queen_max + self.warden_max + self.champ_max
 
 class Player(Model):
+    string_name = "Player"
     name = TextField(null=True, blank=True)
     th = ForeignKey(TH, null=True, blank=True, on_delete=SET_NULL)
     order = IntegerField(null=True, blank=True)
@@ -225,6 +234,7 @@ class Player(Model):
     def champ_highlight(self): return self.th.champ_max - self.champ > 5
 
 class Timer(Model):
+    string_name = "Timer"
     name = TextField(null=True, blank=True)
     def __str__(self): return self.name
     # def elements(self): TimerElement.objects.all()
@@ -232,6 +242,7 @@ class Timer(Model):
     def visible(self): return True
 
 class TimerElement(Model):
+    string_name = "TimerElement"
     timer = ForeignKey(Timer, on_delete=CASCADE)
     name = TextField(null=True, blank=True)
     time = IntegerField(null=True, blank=True)
@@ -253,16 +264,19 @@ class TimerElement(Model):
         return self.start() + self.time
 
 class Tide_Date(Model):
+    string_name = "Tide_Date"
     date = DateField(null=True)
     def __str__(self): return f"{self.date}"
     def tides(self): return New_Tide.objects.filter(date=self).filter(type="low").order_by("time")
     def max_temp(self): return MaxTemp.objects.filter(date=self.date).first()
+    def notes(self): return Note.objects.filter(note_date=self.date)
     def weather(self): return Weather.objects.filter(date=self).order_by("time")
     def events(self): return Event.objects.filter(date=self.date)
     def birthdays(self): return Birthday.objects.filter(date__month=self.date.month).filter(date__day=self.date.day)
     def bookings(self): return Booking.objects.filter(start_date__lte=self.date).filter(end_date__gte=self.date).order_by('start_date')
 
 class New_Tide(Model):
+    string_name = "New_Tide"
     date = ForeignKey(Tide_Date, on_delete=CASCADE)
 #     date = DateField(null=True)
     time = TimeField(null=True)
@@ -271,12 +285,14 @@ class New_Tide(Model):
     def __str__(self): return f"{self.date} {self.time} {self.type}"
 
 class Weather(Model):
+    string_name = "Weather"
     date = ForeignKey(Tide_Date, on_delete=CASCADE)
     time = TimeField(null=True)
     precis = CharField(max_length=30, null=True)
     def __str__(self): return f"{self.date} {self.time} {self.precis}"
 
 class MaxTemp(Model):
+    string_name = "MaxTemp"
     date = DateField(null=True)
     max = IntegerField(null=True)
     def __str__(self): return f"{self.date}: Max {self.max}"
@@ -302,3 +318,4 @@ def get_birthday_reminders():
     return text
 
 all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement, New_Tide, Tide_Date, Weather]
+

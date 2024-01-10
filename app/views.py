@@ -2,7 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from collections import namedtuple
+from django.http import HttpResponse
+
+import pandas as pd
 import requests
+import socket
 
 from .forms import *
 
@@ -31,6 +35,30 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect("login")
+
+def downloadpage(request):
+    print("Download page")
+    context = {}
+    return render(request, 'down_load.html', context)
+
+def downloadexcel(request):
+    if not request.user.is_authenticated: return redirect("login")
+    if not socket.gethostname() == "Mum_and_Dads": return redirect("notes")
+
+    writer = pd.ExcelWriter('my_data.xlsx', engine='xlsxwriter')
+    for count, model in enumerate(all_models, 1):
+        print("Model name:", model.string_name)
+        data = model.objects.all()
+        df = pd.DataFrame(list(data.values()))
+        df.to_excel(writer, sheet_name=f'{model.string_name}', index=False)
+    writer.close()
+
+    # Create an HttpResponse object with the Excel file
+    response = HttpResponse(open('my_data.xlsx', 'rb').read(), content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="my_data.xlsx"'
+
+    return response
+
 
 def shopping(request):
     if not request.user.is_authenticated: return redirect("login")
@@ -156,12 +184,7 @@ def notes(request):
         form = NoteForm(request.POST or None)
         if form.is_valid(): form.save()
     object = Note.objects.exclude(parent__isnull=False).first()
-    # all_notes = Note.objects.all()
-    # categories = Category.objects.all()
-    # count = len(objects)
-    # context = {'objects': objects, 'all_notes': all_notes, 'categories': categories, 'count': count, 'form': form, 'title': "Notes"}
-    # return render(request, 'notes.html', context)
-    # id = objects.id
+
     return redirect("note", object.id)
 
 def edit_note(request, id):
@@ -202,7 +225,7 @@ def note(request, id):
     form = NoteForm()
     object.order_children()
     children = Note.objects.filter(parent=object).order_by('category', 'order')
-    add_order_to_children(object)
+    # add_order_to_children(object)
     count = len(children)
     categories = Category.objects.all()
 
@@ -215,7 +238,8 @@ def note(request, id):
             child.text = ""
             child.save()
 
-    context = {'object': object, 'categories': categories, 'children': children, 'count': count, 'form': form}
+    home_pc = socket.gethostname() == "Mum_and_Dads"
+    context = {'object': object, 'categories': categories, 'children': children, 'count': count, 'form': form, 'home_pc': home_pc}
     return render(request, 'note.html', context)
 
 def up(request, id):
@@ -225,23 +249,32 @@ def down(request, id):
     return reorder(request, 1, id)
 
 def reorder(request, dir, id):
+    print("Reorder:", dir, id)
     object = Note.objects.filter(id=id).first()
     if object is None:
         pass
     elif dir == 1 and object.order == object.parent.max_child_number():
+        # print("Order field = Max")
         pass
     elif dir == -1 and object.order == 1:
+        # print("Order field = 1")
         pass
     else:
         if object.order:
-            other_object = Note.objects.filter(category=object.category, order=object.order + dir).first()
+            other_object = Note.objects.filter(parent=object.parent, order=object.order + dir).first()
+            # print("Selected Object:", object)
+            # print("Other Object:", other_object)
             if other_object:
+                # print("Pre (Other)", other_object.order)
                 other_object.order = object.order
                 other_object.save()
+                # print("Post (Other)", other_object.order)
+            # print("Pre (Object)", object.order)
             object.order = object.order + dir
         else:
             object.order = object.next_child_number()
         object.save()
+        # print("Post (Object)", object.order)
 
     if object and object.parent:
         return redirect("note", str(object.parent.id))
@@ -303,33 +336,25 @@ def events(request):
         if form.is_valid(): form.save()
 
     today = date.today()
-    events = Event.objects.filter(date__gte=today).order_by(ExtractMonth('date'), ExtractDay('date'))
-    bookings = Booking.objects.filter(start_date__gte=today).order_by(ExtractMonth('start_date'), ExtractDay('start_date'))
-    birthdays = Birthday.objects.all()
 
-    events_and_bookings = []
+    # Weather
+    end_date = today + timedelta(days=3)
+    weather_check = Tide_Date.objects.filter(date=end_date).first().weather()
+    if not weather_check:
+        print("Date object:", Tide_Date.objects.filter(date=end_date))
+        print("First one:", Tide_Date.objects.filter(date=end_date).first())
+        get_weather()
 
-    for event in events:
-        new = Event_Tuple(event.date, event.description)
-        events_and_bookings.append(new)
+    # Tides
+    end_date = today + timedelta(days=30)
+    tide_check = Tide_Date.objects.filter(date=end_date).first()
+    if tide_check is None or len(tide_check.tides()) == 0: get_tides()
 
-    for booking in bookings:
-        new = Event_Tuple(booking.start_date, "Dog Booking: " + booking.dog.name)
-        events_and_bookings.append(new)
+    tide_dates = Tide_Date.objects.filter(date__lte=end_date).filter(date__gte=today).order_by('date')
+    context = {'tide_dates': tide_dates, 'title': "Events"}
 
-    for birthday in birthdays:
-        if birthday.next_age_days() < 60:
-            new = Event_Tuple(today + timedelta(days=birthday.next_age_days()), "Birthday: " + str(birthday))
-            events_and_bookings.append(new)
 
-    events_and_bookings = sorted(events_and_bookings, key=lambda e: e.date)
-
-    for item in events_and_bookings:
-        print(item)
-
-    count = len(events_and_bookings)
-
-    context = {'objects': events_and_bookings, "count": count, 'title': "Events"}
+    # context = {'objects': events_and_bookings, "count": count}
     return render(request, 'events.html', context)
 
 def clash(request):
@@ -364,6 +389,7 @@ def timer(request, id):
     return render(request, "timer.html", context)
 
 def get_tides():
+    print("Getting tides")
     key = 'ZmY5ZDcxZGQwMzBhNmE3NzY4YTI4Mj'
     location = 3212
 
@@ -380,10 +406,13 @@ def get_tides():
             if date_object is None:
                 date_object = Tide_Date(date=date)
                 date_object.save()
-            new_object = New_Tide(date=date_object, time=date_time_obj.time(), height=peak['height'], type=peak['type'])
-            new_object.save()
+            existing = New_Tide.objects.filter(date=date_object, time=date_time_obj.time()).first()
+            if not existing:
+                new_object = New_Tide(date=date_object, time=date_time_obj.time(), height=peak['height'], type=peak['type'])
+                new_object.save()
 
 def get_weather():
+    print("Getting weather")
     key = 'ZmY5ZDcxZGQwMzBhNmE3NzY4YTI4Mj'
     location = 3212
     url = f'https://api.willyweather.com.au/v2/{key}/locations/{location}/weather.json'

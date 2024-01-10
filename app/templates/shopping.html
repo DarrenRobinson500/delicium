@@ -1,14 +1,7 @@
 {% extends 'base.html'%}
 {% block content %}
     <h1>Shopping</h1>
-    <h3>Create New Item</h3>
-     <form action="{% url 'shopping' %}" class="form-inline my-2 my-lg-0" method="POST">
-        {% csrf_token %}
-        {{ form.media }}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-yak">Add item</button>
-    </form>
-<hr>
+
      <form action="{% url 'shopping_save' %}" class="form-inline my-2 my-lg-0" method="POST">
         {% csrf_token %}
          <div class="row">
@@ -26,6 +19,13 @@
          </div>
          <button type="submit" class="btn btn-yak">Save</button> <a class="btn btn-yak" href="{% url 'shopping_clear' %}">Clear</a>
     </form>
-
+<hr>
+    <h3>Create New Item</h3>
+     <form action="{% url 'shopping' %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        {{ form.media }}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-yak">Add item</button>
+    </form>
 
 {% endblock %}

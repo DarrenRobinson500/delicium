@@ -39,7 +39,7 @@ class DiaryForm(ModelForm):
 class NoteForm(ModelForm):
     class Meta:
         model = Note
-        fields = ['heading', 'text', 'category']
+        fields = ['heading', 'text', 'category', 'note_date']
         labels = {
             'heading': "",
             'text': "",
@@ -48,6 +48,7 @@ class NoteForm(ModelForm):
         widgets = {
             'heading': TextInput(attrs={'class':'form-control', 'placeholder': "Heading"}),
             'category': Select(attrs={'class': 'form-control'}),
+            'note_date': DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
 class QuoteForm(ModelForm):

@@ -8,17 +8,10 @@
         Parent: <a href="{% url 'note' object.parent.id %}">{{ object.parent_text }}</a><br>
     {% endif %}
     <a href="{% url 'edit_note' object.id %}">edit</a>
+    {% if home_pc %}
+        <a href="{% url 'downloadpage' %}">download</a>
+    {% endif %}
 
-    <h3>Create Note</h3>
-     <form action="{% url 'note' object.id %}" class="form-inline my-2 my-lg-0" method="POST">
-        {% csrf_token %}
-        {{ form.media }}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-yak">Add note</button>
-    </form>
-
-
-<hr>
     <table class="table">
       <tbody>
         {% for item in object.children %}
@@ -51,5 +44,19 @@
         {% endfor %}
       </tbody>
     </table>
+
+
+
+
+    <h3>Create Note</h3>
+     <form action="{% url 'note' object.id %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        {{ form.media }}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-yak">Add note</button>
+    </form>
+
+
+<hr>
 
 {% endblock %}
