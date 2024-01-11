@@ -11,7 +11,7 @@
 
         {% for entry in dog_diary %}
         <tr>
-            <td>{{ entry.date |date:"j M - D"}}</td>
+            <td>{{ entry.date | date:"j M - D"}}</td>
             <td>{{ entry.bookings | length }}</td>
             <td>
                 {% for booking in entry.bookings %}

@@ -183,7 +183,11 @@ class Birthday(Model):
         days = (date - today).days + 1
 
         next_age = today.year + year_adj - self.date.year
-        next_age_string = f"{self.person} will turn {next_age} years old in {days} days."
+        next_age_string = ""
+        if self.tag == "Birthday":
+            next_age_string = f"{self.person} will turn {next_age} years old in {days} days."
+        if self.tag == "Anniversary":
+            next_age_string = f"It is the {next_age}th {self.person} anniversary in {days} days."
         # next_age_string = "XX"
 
         return next_age_string
@@ -227,11 +231,16 @@ class Player(Model):
 
     def __str__(self): return f"{self.name} (Level {self.th})"
     def total(self): return self.king + self.queen + self.warden + self.champ
-    def total_perc(self): return self.th.total() - (self.king + self.queen + self.warden + self.champ)
-    def king_highlight(self): return self.th.king_max - self.king > 5
-    def queen_highlight(self): return self.th.queen_max - self.queen > 5
-    def warden_highlight(self): return self.th.warden_max - self.warden > 5
-    def champ_highlight(self): return self.th.champ_max - self.champ > 5
+    def total_remaining(self): return self.th.total() - (self.king + self.queen + self.warden + self.champ)
+    def king_colour(self): return colour(self.king, self.th.king_max)
+    def queen_colour(self): return colour(self.queen, self.th.queen_max)
+    def warden_colour(self): return colour(self.warden, self.th.warden_max)
+    def champ_colour(self): return colour(self.champ, self.th.champ_max)
+
+def colour(value, max):
+    if max - value > 5: return "#ffc0cb"
+    if max == value: return "#acdf87"
+    return "white"
 
 class Timer(Model):
     string_name = "Timer"
@@ -297,6 +306,12 @@ class MaxTemp(Model):
     max = IntegerField(null=True)
     def __str__(self): return f"{self.date}: Max {self.max}"
 
+class Wordle(Model):
+    word = CharField(max_length=5, null=True)
+    date = DateField(null=True)
+    def __str__(self): return f"{self.word} ({self.date})"
+
+
 def min_days_to_birthday():
     birthday_objects = Birthday.objects.all()
     minimum = 365
@@ -317,5 +332,5 @@ def get_birthday_reminders():
             text += f"It is {object.person}'s birthday today. "
     return text
 
-all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement, New_Tide, Tide_Date, Weather]
+all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement, New_Tide, Tide_Date, Weather, Wordle]
 

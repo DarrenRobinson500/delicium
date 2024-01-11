@@ -37,7 +37,7 @@
 
         {% for date in tide_dates %}
         <tr>
-            <td>{{ date.date }}</td>
+            <td>{{ date.date | date:"j M - D" }}</td>
             <td>
                 {% for birthday in date.birthdays %}<b>{{ birthday.tag }}: {{ birthday }}</b><br>{% endfor %}
                 {% for event in date.events %}{{ event.description }}<br>{% endfor %}

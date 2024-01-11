@@ -32,7 +32,7 @@
                 <td class="col-9">{{ item.chain }} <a href="{% url 'note' item.id %}">{{ item.heading }}</a><br>
                     {{ item.text | safe }}
                     {% for child in item.children %}
-                     - <a href="{% url 'note' child.id %}">{{ child }}</a><br>
+                     - {{ child.chain }} <a href="{% url 'note' child.id %}">{{ child.heading }}</a><br>
                     {% endfor %}
 
                 </td>

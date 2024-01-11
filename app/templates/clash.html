@@ -14,12 +14,18 @@
       </thead>
     {% for player in players %}
         <tr>
-          <td  style="text-align: left">{{ player }}</td>
-          <td {% if player.king_highlight %} style="background-color: #ffc0cb"{% endif %}>{{ player.king }} / {{ player.th.king_max }} <a href="{% url 'hero_inc' player.id 'king' %}">+</a></td>
-          <td {% if player.queen_highlight %} style="background-color: #ffc0cb"{% endif %}>{{ player.queen }} / {{ player.th.queen_max }} <a href="{% url 'hero_inc' player.id 'queen' %}">+</a></td>
-          <td {% if player.warden_highlight %} style="background-color: #ffc0cb"{% endif %}>{{ player.warden }} / {{ player.th.warden_max }} <a href="{% url 'hero_inc' player.id 'warden' %}">+</a></td>
-          <td {% if player.champ_highlight %} style="background-color: #ffc0cb"{% endif %}>{{ player.champ }} / {{ player.th.champ_max }} <a href="{% url 'hero_inc' player.id 'champ' %}">+</a></td>
-          <td>{{ player.total }} / {{ player.th.total }} ({{ player.total_perc }})</td>
+          <td style="text-align: left">{{ player }}</td>
+          <td style="background-color: {{ player.king_colour }}">{{ player.king }} / {{ player.th.king_max }} {% if player.king < player.th.king_max %} <a href="{% url 'hero_inc' player.id 'king' %}">+</a>{% endif %}</td>
+          <td style="background-color: {{ player.queen_colour }}">{{ player.queen }} / {{ player.th.queen_max }} {% if player.queen < player.th.queen_max %}<a href="{% url 'hero_inc' player.id 'queen' %}">+</a>{% endif %}</td>
+          <td style="background-color: {{ player.warden_colour }}">{{ player.warden }} / {{ player.th.warden_max }} {% if player.warden < player.th.warden_max %}<a href="{% url 'hero_inc' player.id 'warden' %}">+</a>{% endif %}</td>
+          <td style="background-color: {{ player.champ_colour }}">{{ player.champ }} / {{ player.th.champ_max }} {% if player.champ < player.th.champ_max %}<a href="{% url 'hero_inc' player.id 'champ' %}">+</a>{% endif %}</td>
+          <td>{{ player.total }} / {{ player.th.total }} ({{ player.total_remaining }})</td>
         </tr>
     {% endfor %}
+
+        <tr class="table-secondary" style="font-weight: bold;">
+          <td  style="text-align: left">Total Remaining</td>
+            <td></td><td></td><td></td><td></td>
+            <td>{{ total_string }}</td>
+        </tr>
 {% endblock %}

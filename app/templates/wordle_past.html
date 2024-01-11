@@ -1,0 +1,9 @@
+{% extends 'base.html'%}
+{% block content %}
+
+{% for word in words %}
+<p>{{word.date}} {{ word.word }}</p>
+{% endfor %}
+
+
+{% endblock %}

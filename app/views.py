@@ -360,7 +360,16 @@ def events(request):
 def clash(request):
     ths = TH.objects.order_by('level')
     players = Player.objects.all().order_by('order')
-    context = {'ths': ths, 'players': players}
+    total, max, remaining = 0, 0, 0
+    for player in players:
+        total += player.total()
+        max += player.th.total()
+    total_string = f"{total} / {max} ({max - total})"
+    #     if player.king > player.th.king_max: player.king = player.th.king_max
+    #     if player.queen > player.th.queen_max: player.queen = player.th.queen_max
+    #     if player.champ > player.th.champ_max: player.champ = player.th.champ_max
+    #     player.save()
+    context = {'ths': ths, 'players': players, 'total_string': total_string}
     return render(request, 'clash.html', context)
 
 def hero_inc(request, id, hero):
