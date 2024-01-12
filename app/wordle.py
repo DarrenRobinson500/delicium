@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from collections import Counter
 from collections import namedtuple
 from itertools import *
@@ -54,42 +55,44 @@ def count_same_letters(words):
     return same_letters
 
 def find_fav_word(words):
-    if not words: return None
+    if not words: return None, None
     min_result = len(words)
-    fav_word = words[0]
+    fav_word = words[0].word
     words_with_count = []
     for word in words:
         colour_array = []
         for x in words:
-            colours = determine_colours(x,word)[6] # 6 is the shortened version of the color array
+            colours = determine_colours(x.word, word.word)[6] # 6 is the shortened version of the color array
             colour_array.append(colours)
         count = Counter(colour_array).most_common(1)[0][1]
         if count < min_result:
             min_result = count
-            fav_word = word
+            fav_word = word.word
+        # word_obj = Wordle.objects.filter(word=word).first()
         words_with_count.append(Word_Tuple(word, count))
 
     # Check if there are a large number of similar words
-    if 2 < len(words) < 12:
-        if count_same_letters(words) >= 3:
-            letters = potential_letters(words, different_letters(words)[0])
-            fav_word = find_word(letters)
+    # if 2 < len(words) < 12:
+    #     if count_same_letters(words) >= 3:
+    #         letters = potential_letters(words, different_letters(words)[0])
+    #         fav_word = find_word(letters)
 
     return fav_word, words_with_count
 
 def find_word(letter_array):
     max = 0
     max_word = ""
+    all_words = Wordle.objects.filter(date__isnull=True)
     for word in all_words:
         count = 0
         for letter in letter_array:
             found = False
-            for letter2 in word:
+            for letter2 in word.word:
                 if letter == letter2: found = True
             if found: count += 1
         if count > max:
             max = count
-            max_word = word
+            max_word = word.word
     return max_word
 
 def different_letters(words):
@@ -109,6 +112,17 @@ def potential_letters(words, pos):
         potential_letters.append(word[pos])
     potential_letters = set(potential_letters)
     return potential_letters
+
+def add_wordle(request, word):
+    today = date.today()
+    object = Wordle.objects.filter(word=word).first()
+    if object:
+        object.date = today
+        object.save()
+        messages.success(request, f"'{word}' recorded as today's word")
+    else:
+        messages.success(request, f"'{word}' wasn't found in database")
+    return redirect("wordle")
 
 def wordle(request):
     print("Start Input Array:", input_array)
@@ -135,12 +149,13 @@ def wordle(request):
         if valid:
             input_array.append(input)
 
+    all_words = Wordle.objects.filter(date__isnull=True)
     for word in all_words:
         valid = True
         for attempt in input_array:
             count = 0
             for letter, colour in attempt:
-                if not check(count, colour, letter, word, attempt): valid = False
+                if not check(count, colour, letter, word.word, attempt): valid = False
                 count += 1
 
         if valid:
@@ -150,10 +165,12 @@ def wordle(request):
         fav_word = "slice"
         words_with_count = []
         for word in words:
+            # word_object = Wordle.objects.filter(word=word).first()
             words_with_count.append(Word_Tuple(word, 0))
     else:
         fav_word, words_with_count = find_fav_word(words)
-    words.sort()
+
+
     count = len(words)
 
     green1, green2, green3, green4, green5 = "", "", "", "", "",
@@ -170,6 +187,51 @@ def wordle(request):
 def clear(request):
     input_array.clear()
     return redirect("wordle")
+
+def past_words(request):
+    # workbook = load_workbook('excel/past_wordles.xlsx')
+    # worksheet = workbook.worksheets[0]
+    # words = []
+    existing_words = Wordle.objects.all()
+    # for row in worksheet.iter_rows():
+    #     date, word = row[0].value, row[1].value
+    #     # words.append((date, word))
+    #     if not word in existing_words.filter(word=word):
+    #         new = Wordle(date=date, word=word)
+    #         new.save()
+    # word_objects = Wordle.objects.all()
+    # Wordle.objects.filter(date__isnull=True).delete()
+    count = 0
+    # for word in all_words:
+    #     print(Wordle.objects.filter(word=word))
+    #     if not Wordle.objects.filter(word=word):
+    #         print(f"Making new[{count}]:", word)
+    #         new = Wordle(word=word)
+    #         new.save()
+    #         count += 1
+
+
+
+    remaining_words = Wordle.objects.filter(date__isnull=True)
+    used_words = Wordle.objects.filter(date__isnull=False).order_by('-date')
+
+    # used_words = used_words.values('word').distinct()
+
+    # for word in all_words:
+    #     existing = Wordle.objects.filter(word=word)
+    #     if len(existing) == 2:
+    #         existing.first().delete()
+
+    # duplicate_objects = used_words.exclude(id__in=unique_objects)
+    # duplicate_objects.delete()
+
+    # unique_objects.delete()
+
+
+
+    context = {'used_words': used_words, 'remaining_words': remaining_words}
+    return render(request, "wordle_past.html", context)
+
 
 
 def word(request):
@@ -202,26 +264,5 @@ def get_words(letters):
 
     return all_words
 
-
-def past_words(request):
-    # workbook = load_workbook('excel/past_wordles.xlsx')
-    # worksheet = workbook.worksheets[0]
-    # words = []
-    existing_words = Wordle.objects.all()
-    # for row in worksheet.iter_rows():
-    #     date, word = row[0].value, row[1].value
-    #     # words.append((date, word))
-    #     if not word in existing_words.filter(word=word):
-    #         new = Wordle(date=date, word=word)
-    #         new.save()
-    # word_objects = Wordle.objects.all()
-    for word in all_words:
-        if not Wordle.objects.filter(word=word):
-            new = Wordle(word=word)
-            new.save()
-    word_objects = Wordle.objects.order_by('date')
-
-    context = {'words':word_objects}
-    return render(request, "wordle_past.html", context)
 
 

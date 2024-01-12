@@ -58,9 +58,12 @@
         Favourite Word: {{ fav_word }}<br>
         <br>
         {% for x in words_with_count %}
-            {{ x.word }} {% if x.count != 0 %} ({{ x.count }}) {% endif %}<br>
+            {% if not x.date %}
+                {{ x.word }} {% if x.count != 0 %} ({{ x.count }}) {% endif %}<br>
+            {% endif %}
         {% endfor %}<br>
         <a href="{% url 'clear' %}" class='btn btn-outline-secondary btn-sm'>Clear</a><br>
+        <a href="{% url 'add_wordle' fav_word %}" class='btn btn-outline-secondary btn-sm'>Add '{{ fav_word }}'</a><br>
     </div>
     <div class="col-sm-4">
     </div>

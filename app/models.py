@@ -309,7 +309,11 @@ class MaxTemp(Model):
 class Wordle(Model):
     word = CharField(max_length=5, null=True)
     date = DateField(null=True)
-    def __str__(self): return f"{self.word} ({self.date})"
+    def __str__(self):
+        if self.date:
+            return f"{self.word} ({self.date})"
+        else:
+            return self.word
 
 
 def min_days_to_birthday():

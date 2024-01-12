@@ -1,9 +1,23 @@
 {% extends 'base.html'%}
 {% block content %}
 
-{% for word in words %}
-<p>{{word.date}} {{ word.word }}</p>
-{% endfor %}
+<div class="row">
 
+
+    <div style="display: inline-block; width: 50%;">
+        <h1>Number of used words: {{ used_words | length }}</h1>
+        {% for word in used_words %}
+            {{ word.word }} {{ word.date }}<br>
+        {% endfor %}
+    </div>
+
+    <div style="display: inline-block; width: 50%;">
+        <h1>Number of remaining words: {{ remaining_words | length }}</h1>
+        {% for word in remaining_words %}
+            {{ word.word }}<br>
+        {% endfor %}
+    </div>
+
+</div>
 
 {% endblock %}
