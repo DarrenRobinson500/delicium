@@ -18,7 +18,10 @@ class EventForm(ModelForm):
 class DogForm(ModelForm):
     class Meta:
         model = Dog
-        fields = ['name', 'owners', 'notes', 'image']
+        fields = ['name', 'owners', 'owners_link', 'notes', 'image', ]
+        widgets = {
+            'owners_link': Select(attrs={'class': 'form-control'}),
+        }
 
 class BookingForm(ModelForm):
     class Meta:
@@ -50,6 +53,9 @@ class NoteForm(ModelForm):
             'category': Select(attrs={'class': 'form-control'}),
             'note_date': DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['note_date'].required = False
 
 class QuoteForm(ModelForm):
     class Meta:

@@ -7,13 +7,15 @@
     .grey {background-color:grey;}
 </style>
 
-<a href="https://www.nytimes.com/games/wordle/index.html" target="_blank" class='btn btn-outline-secondary btn-sm'>Wordle</a>
-<a href="{% url 'past_words' %}" class='btn btn-outline-secondary btn-sm'>History</a><br>
 
 <div class="row">
-    <div class="col-sm-4">
+    <div class="col-sm-2">
+        <h2>Nav</h2>
+        <a href="https://www.nytimes.com/games/wordle/index.html" target="_blank" class='btn btn-outline-secondary btn-sm'>NY Times</a><br>
+        <a href="{% url 'past_words' %}" class='btn btn-outline-secondary btn-sm'>History</a><br>
     </div>
     <div class="col-sm-4">
+        <h2>Puzzle</h2>
         <table class='table table-sm' style="text-align: center;">
             {% for word in input_array %}
                 <tr>
@@ -23,15 +25,6 @@
                 </tr>
             {% endfor %}
         </table>
-    </div>
-    <div class="col-sm-4">
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-sm-4">
-    </div>
-    <div class="col-sm-4">
         <form action="/wordle" method="POST">
         {% csrf_token %}
             <table class='table table-responsive table-striped table-hover table-bordered table-sm'>
@@ -54,18 +47,26 @@
             </table>
             <input type = 'submit' value = 'Update' class='btn btn-outline-secondary btn-sm'><br><br>
         </form>
-        Count: {{ count }} <br>
+        <a href="{% url 'clear' %}" class='btn btn-outline-secondary btn-sm'>Clear</a><br>
+    </div>
+    <div class="col-sm-1"></div>
+    <div class="col-sm-3">
+        <h2>Words</h2>
+        Count: {{ words | length }} <br>
         Favourite Word: {{ fav_word }}<br>
         <br>
-        {% for x in words_with_count %}
-            {% if not x.date %}
-                {{ x.word }} {% if x.count != 0 %} ({{ x.count }}) {% endif %}<br>
-            {% endif %}
+        {% for word in words %}
+            {{ word.upper }} {% if word.score %} ({{ word.score }}) {% endif %}<br>
         {% endfor %}<br>
-        <a href="{% url 'clear' %}" class='btn btn-outline-secondary btn-sm'>Clear</a><br>
         <a href="{% url 'add_wordle' fav_word %}" class='btn btn-outline-secondary btn-sm'>Add '{{ fav_word }}'</a><br>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-2">
+        <h2>Letters</h2>
+        {% for item in counter %}
+            {{ item }}<br>
+        {% endfor %}
+        <h2>Random</h2>
+        {{ random_item.upper }}
     </div>
 </div>
 

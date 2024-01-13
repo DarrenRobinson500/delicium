@@ -1,0 +1,49 @@
+{% extends 'base.html'%}
+{% block content %}
+    <h1>{{ shop }} (Edit)</h1>
+
+<div class="row">
+    <div class="col-sm-8" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white;">
+        <table class="table">
+          <thead>
+            <tr class="d-flex">
+              <th class="col-2"></th>
+              <th class="col-2">Order</th>
+              <th class="col-4">Item</th>
+              <th class="col-1">Age</th>
+              <th class="col-2">Control</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in shop.items %}
+                <tr class="d-flex">
+                    <td class="col-2">
+                        <a class="btn btn-yak" href="{% url 'shopping_up' item.id %}">U</a>
+                        <a class="btn btn-yak" href="{% url 'shopping_down' item.id %}">D</a>
+                    </td>
+                    <td class="col-2">{{ item.order }}</a><br></td>
+                    <td class="col-4">{{ item.name }}</a><br></td>
+                    <td class="col-1">{{ item.age }}</a><br></td>
+                    <td class="col-2">
+                        <a class="btn btn-yak" href="{% url 'shopping_delete' item.id %}">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+    <div class="col-sm-2" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white;">
+         <p><b>{{ shop }}</b></p>
+            {% for item in shop.items %}
+                {% if item.show %}
+                    <input type="checkbox" id="my-checkbox" name="checkbox{{ item.id }}" value="1" {% if item.buy %}checked{% endif %}>
+                    <label for="my-checkbox">{{ item }}</label><br>
+                {% endif %}
+            {% endfor %} <br>
+        <a class="btn btn-yak" href="{% url 'shopping_edit' shop.id %}">Edit</a>
+    </div>
+</div>
+
+
+
+{% endblock %}

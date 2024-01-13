@@ -2,22 +2,20 @@
 {% block content %}
 
 <div class="row">
-
-
-    <div style="display: inline-block; width: 50%;">
-        <h1>Number of used words: {{ used_words | length }}</h1>
+    <div style="display: inline-block; width: 10%;"></div>
+    <div style="display: inline-block; width: 35%; background-color: #ffe5ea; padding: 10px; border: 4px solid white;">
+        <h1>Used words: {{ used_words | length }}</h1>
         {% for word in used_words %}
-            {{ word.word }} {{ word.date }}<br>
+            {{ word.word.upper }} ({{ word.date }})<br>
         {% endfor %}
     </div>
 
-    <div style="display: inline-block; width: 50%;">
-        <h1>Number of remaining words: {{ remaining_words | length }}</h1>
+    <div style="display: inline-block; width: 35%; background-color: #ffe5ea; padding: 10px; border: 4px solid white;">
+        <h1>Remaining words: {{ remaining_words | length }}</h1>
         {% for word in remaining_words %}
-            {{ word.word }}<br>
+            {{ word.word.upper }}<br>
         {% endfor %}
     </div>
-
 </div>
 
 {% endblock %}

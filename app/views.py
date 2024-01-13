@@ -59,7 +59,6 @@ def downloadexcel(request):
 
     return response
 
-
 def shopping(request):
     if not request.user.is_authenticated: return redirect("login")
     if request.method == 'POST':
@@ -92,6 +91,43 @@ def shopping_clear(request):
         object.save()
 
     return redirect('shopping')
+def shopping_delete(request, id):
+    object = Note.objects.filter(id=id).first()
+    if object and object.shop: parent = object.shop
+    if object: object.delete()
+    if parent: return redirect("shopping_edit", f"{parent.id}")
+    else: return redirect("shopping")
+
+def shopping_edit(request, id):
+    shop = Shop.objects.get(id=id)
+    shop.order_children()
+    context = {'shop': shop}
+    return render(request, "shopping_edit.html", context)
+
+def shopping_up(request, id): return shopping_reorder(request, -1, id)
+
+def shopping_down(request, id): return shopping_reorder(request, 1, id)
+
+def shopping_reorder(request, dir, id):
+    object = Shopping.objects.filter(id=id).first()
+    if object is None:                                                  pass
+    elif dir == 1 and object.order == object.shop.max_child_number():   pass
+    elif dir == -1 and object.order == 1:                               pass
+    else:
+        if object.order:
+            other_object = Shopping.objects.filter(shop=object.shop, order=object.order + dir).first()
+            if other_object:
+                other_object.order = object.order
+                other_object.save()
+            object.order = object.order + dir
+        else:
+            object.order = object.shop.next_child_number()
+        object.save()
+
+    if object and object.shop:
+        return redirect("shopping_edit", str(object.shop.id))
+    else:
+        return redirect("notes")
 
 
 def dogs(request):
@@ -104,7 +140,7 @@ def dogs(request):
     objects = sorted(objects, key=lambda d: d.next_booking())
 
     count = len(objects)
-    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form, "edit_mode": False}
+    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form, "edit_mode": False, 'people': people()}
     return render(request, 'dog.html', context)
 
 def dog_edit(request, id):
@@ -254,27 +290,19 @@ def reorder(request, dir, id):
     if object is None:
         pass
     elif dir == 1 and object.order == object.parent.max_child_number():
-        # print("Order field = Max")
         pass
     elif dir == -1 and object.order == 1:
-        # print("Order field = 1")
         pass
     else:
         if object.order:
             other_object = Note.objects.filter(parent=object.parent, order=object.order + dir).first()
-            # print("Selected Object:", object)
-            # print("Other Object:", other_object)
             if other_object:
-                # print("Pre (Other)", other_object.order)
                 other_object.order = object.order
                 other_object.save()
-                # print("Post (Other)", other_object.order)
-            # print("Pre (Object)", object.order)
             object.order = object.order + dir
         else:
-            object.order = object.next_child_number()
+            object.order = object.parent.next_child_number()
         object.save()
-        # print("Post (Object)", object.order)
 
     if object and object.parent:
         return redirect("note", str(object.parent.id))

@@ -10,9 +10,12 @@
                 <div class="col-sm-2" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white;">
                      <p><b>{{ shop }}</b></p>
                         {% for item in shop.items %}
-                            <input type="checkbox" id="my-checkbox" name="checkbox{{ item.id }}" value="1" {% if item.buy %}checked{% endif %}>
-                            <label for="my-checkbox">{{ item }}</label><br>
+                            {% if item.show %}
+                                <input type="checkbox" id="my-checkbox" name="checkbox{{ item.id }}" value="1" {% if item.buy %}checked{% endif %}>
+                                <label for="my-checkbox">{{ item }}</label><br>
+                            {% endif %}
                         {% endfor %} <br>
+                    <a class="btn btn-yak" href="{% url 'shopping_edit' shop.id %}">Edit</a>
                 </div>
              {% endif %}
              {% endfor %}

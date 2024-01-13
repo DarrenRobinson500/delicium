@@ -14,13 +14,35 @@ class Shop(Model):
         if len(self.items()) > 0: return True
         return False
 
+    def max_child_number(self):
+        children = Shopping.objects.filter(shop=self).order_by("-order")
+        if len(children) == 0: return 0
+        if children[0].order: return children[0].order
+        return 0
+    def next_child_number(self): return self.max_child_number() + 1
+    def order_children(self):
+        children = Shopping.objects.filter(shop=self).order_by("order")
+        correction_made = False
+        for count, child in enumerate(children, 1):
+            if child.order != count:
+                child.order = count
+                child.save()
+                correction_made = True
+        if correction_made:
+            children = Note.objects.filter(shop=self).order_by("order")
+        return children
+
+
 class Shopping(Model):
     string_name = "Shopping"
     name = TextField(null=True, blank=True)
     shop = ForeignKey(Shop, null=True, blank=True, on_delete=SET_NULL)
     buy = BooleanField(null=True,)
     order = IntegerField(null=True, blank=True)
+    last_edited = DateField(auto_now=True)
     def __str__(self): return self.name
+    def age(self): return (date.today() - self.last_edited).days
+    def show(self): return self.age() < 45
 
 class Event(Model):
     string_name = "Event"
@@ -28,55 +50,6 @@ class Event(Model):
     date = DateField(auto_now=False, null=True)
     def __str__(self): return "[" + str(self.date) + "] " + self.description[0:50]
 
-class Dog(Model):
-    string_name = "Dog"
-    name = TextField(null=True, blank=True)
-    owners = TextField(null=True, blank=True)
-    notes = TextField(null=True, blank=True)
-    image = ImageField(null=True, blank=True, upload_to="images/")
-    def __str__(self):
-        return self.name
-
-    def bookings(self):
-        bookings = Booking.objects.filter(dog=self).order_by('start_date')
-        # print(self, bookings)
-        return bookings
-
-    def next_booking(self):
-        today = date.today()
-        bookings = Booking.objects.filter(dog=self).filter(start_date__gte=today).order_by('start_date')
-        if bookings: return bookings[0].start_date
-        return today + timedelta(days=360)
-
-
-class Booking(Model):
-    string_name = "Booking"
-    dog = ForeignKey(Dog, on_delete=CASCADE)
-    start_date = DateField(null=True)
-    end_date = DateField(null=True)
-
-    def __str__(self):
-        try:
-            return f"{self.dog}: {self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
-        except:
-            return f"{self.start_date} to {self.end_date} {self.nights()}"
-
-    def short_name(self):
-        return f"{self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
-
-    def description(self):
-        return self.dog
-
-    def date(self):
-        return self.start_date
-
-    def nights(self):
-        try:
-            nights = (self.end_date - self.start_date).days
-            nights = f"({nights} nights)"
-        except:
-            nights = ""
-        return nights
 
 
 
@@ -105,8 +78,8 @@ class Note(Model):
     text = RichTextField(null=True, blank=True)
     category = ForeignKey(Category, null=True, blank=True, on_delete=SET_NULL)
     parent = ForeignKey('self', null=True, blank=True, on_delete=CASCADE)
-    date = DateField(auto_now_add=True, null=True)
-    note_date = DateField(null=True)
+    date = DateField(auto_now_add=True, null=True, blank=True)
+    note_date = DateField(null=True, blank=False)
     order = IntegerField(null=True, blank=True)
     def __str__(self):
         if self.parent:
@@ -152,6 +125,63 @@ class Note(Model):
 
     def children(self):
         return Note.objects.filter(parent=self).order_by("order")
+
+def people():
+    people_category = Category.objects.filter(name="People").first()
+    print("People category", people_category)
+    print("People category id", people_category.id)
+    return Note.objects.filter(category=people_category)
+
+class Dog(Model):
+    string_name = "Dog"
+    name = TextField(null=True, blank=True)
+    owners = TextField(null=True, blank=True)
+    notes = TextField(null=True, blank=True)
+    image = ImageField(null=True, blank=True, upload_to="images/")
+    owners_link = ForeignKey(Note, null=True, on_delete=SET_NULL)
+    def __str__(self):
+        return self.name
+
+    def bookings(self):
+        bookings = Booking.objects.filter(dog=self).order_by('start_date')
+        # print(self, bookings)
+        return bookings
+
+    def next_booking(self):
+        today = date.today()
+        bookings = Booking.objects.filter(dog=self).filter(start_date__gte=today).order_by('start_date')
+        if bookings: return bookings[0].start_date
+        return today + timedelta(days=360)
+
+
+class Booking(Model):
+    string_name = "Booking"
+    dog = ForeignKey(Dog, on_delete=CASCADE)
+    start_date = DateField(null=True)
+    end_date = DateField(null=True)
+
+    def __str__(self):
+        try:
+            return f"{self.dog}: {self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
+        except:
+            return f"{self.start_date} to {self.end_date} {self.nights()}"
+
+    def short_name(self):
+        return f"{self.start_date:%a, %d %b} to {self.end_date:%a, %d %b} {self.nights()}"
+
+    def description(self):
+        return self.dog
+
+    def date(self):
+        return self.start_date
+
+    def nights(self):
+        try:
+            nights = (self.end_date - self.start_date).days
+            nights = f"({nights} nights)"
+        except:
+            nights = ""
+        return nights
 
 class Quote(Model):
     string_name = "Quote"
@@ -309,11 +339,14 @@ class MaxTemp(Model):
 class Wordle(Model):
     word = CharField(max_length=5, null=True)
     date = DateField(null=True)
+    score = IntegerField(null=True, blank=True)
     def __str__(self):
         if self.date:
             return f"{self.word} ({self.date})"
         else:
             return self.word
+    def upper(self):
+        return self.word.upper()
 
 
 def min_days_to_birthday():
