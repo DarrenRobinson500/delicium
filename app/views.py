@@ -15,7 +15,7 @@ Dog_Diary = namedtuple('Dog_Diary', ['date', 'bookings'])
 
 def home(request):
     if not request.user.is_authenticated: return redirect("login")
-    return redirect("diary")
+    return redirect("dog_diary")
 
 def login_user(request):
     if request.method == "POST":
@@ -132,6 +132,7 @@ def shopping_reorder(request, dir, id):
 
 def dogs(request):
     if not request.user.is_authenticated: return redirect("login")
+    print(request.user)
     form = None
     if request.method == 'POST':
         form = DogForm(request.POST, request.FILES)

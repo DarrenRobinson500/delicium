@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.db.models import Count
 from collections import Counter
 from collections import namedtuple
 from itertools import *
@@ -32,25 +33,14 @@ def check(position, colour, value, word, attempt):
     return True
 
 def determine_colours(word, entry):
-    result = ["", "Grey", "Grey", "Grey", "Grey", "Grey", ""]
-    for position in range(1,6):
-        colour_short = "X"
-        for x in range(0, 5):
-            if entry[position-1] == word[x]:
+    result = ["Grey", "Grey", "Grey", "Grey", "Grey"]
+    for position in range(5):
+        for x in range(5):
+            if entry[position] == word[x]:
                 result[position] = 'Orange'
-                colour_short = "O"
-        if entry[position-1] == word[position-1]:
+        if entry[position] == word[position]:
             result[position] = "Green"
-            colour_short = "G"
-        result[6] += colour_short
     return result
-
-def test(request):
-    entry = "arise"
-    word = "vying"
-    result = determine_colours(word, entry)
-    print(result)
-    return redirect('test')
 
 def count_same_letters(words):
     first_word = words[0]
@@ -64,6 +54,11 @@ def count_same_letters(words):
 
 def add_wordle(request, word):
     today = date.today()
+    existing = Wordle.objects.filter(date=today).first()
+    if existing:
+        messages.success(request, f"'{existing.word.upper()}' already exists as today's word")
+        return redirect("wordle")
+
     object = Wordle.objects.filter(word=word).first()
     if object:
         object.date = today
@@ -71,7 +66,7 @@ def add_wordle(request, word):
         messages.success(request, f"'{word}' recorded as today's word")
     else:
         messages.success(request, f"'{word}' wasn't found in database")
-    return redirect("wordle")
+    return redirect("wordle_test")
 
 def get_fav_word(wordles):
     Wordle.objects.all().update(score=0)
@@ -102,10 +97,91 @@ def get_fav_word(wordles):
 
     return counter_list, fav_word
 
+def get_valid_words(input_array):
+    words = []
+    for word in Wordle.objects.filter(date__isnull=True):
+        valid = True
+        for attempt in input_array:
+            count = 0
+            for letter, colour in attempt:
+                if not check(count, colour, letter, word.word, attempt): valid = False
+                count += 1
+        if valid: words.append(word)
+    return words
 
+def solve_wordle(wordle):
+    input_array.clear()
+    words = get_valid_words(input_array)
+    counter, fav_word = get_fav_word(words)
+    while fav_word != wordle:
+        words = get_valid_words(input_array)
+        counter, fav_word = get_fav_word(words)
+        colours = determine_colours(wordle.word, fav_word.word)
+        input = []
+        for x in range(5): input.append((fav_word.word[x], colours[x]))
+        input_array.append(input)
+        fav_word.attempts = len(input_array)
+        fav_word.save()
 
+    wordle.attempts = len(input_array)
+    wordle.save()
+
+def get_max_attempts():
+    categories = Wordle.objects.values('attempts').annotate(count=Count('attempts'))
+    max_attempts = 0
+    for category in categories:
+        if category['attempts']:
+            if category['attempts'] > max_attempts: max_attempts = category['attempts']
+    return max_attempts
+
+def wordle_test(request, id=None):
+
+    all_wordles_done = False
+    for x in range(5):
+        input_array.clear()
+        wordle = Wordle.objects.filter(date__isnull=True).filter(attempts__isnull=True).order_by('?').first()
+        if wordle:
+            solve_wordle(wordle)
+            print(f"Loop: {x + 1} - {wordle.upper()} ({wordle.attempts})")
+        else:
+            all_wordles_done = True
+
+    if all_wordles_done:
+        max_attempts = get_max_attempts()
+        wordles = Wordle.objects.filter(attempts=max_attempts).order_by('?')
+        count = 0
+        for wordle in wordles:
+            if count < 3:
+                solve_wordle(wordle)
+                print(f"Redoing '{wordle.word.upper()}'")
+            count += 1
+
+    words = Wordle.objects.filter(attempts__isnull=False).order_by('word')
+
+    if id:
+        wordle = Wordle.objects.get(id=id)
+        solve_wordle(wordle)
+
+    attempts_range = []
+    categories = Wordle.objects.values('attempts').annotate(count=Count('attempts'))
+    for category in categories:
+        if category['attempts']:
+            attempts_range.append((category['attempts'], category['count']))
+    attempts_range = sorted(attempts_range, key=lambda x: x[0])
+
+    remaining_words = len(Wordle.objects.filter(date__isnull=True))
+
+    context = {'word': word, 'input_array': input_array, 'words': words, 'attempts_range': attempts_range, 'remaining_words': remaining_words}
+    return render(request, "wordle_test.html", context)
 
 def wordle(request):
+    # all_wordles = Wordle.objects.all()
+    # for word in all_words:
+    #     if len(all_wordles.filter(word=word)) == 0:
+    #         print(f"{word.upper()} is missing.")
+    #         Wordle(word=word).save()
+
+
     print("Start Input Array:", input_array)
     value = ["", "", "", "", "", ]
     colour = ["", "", "", "", "", ]
@@ -128,20 +204,12 @@ def wordle(request):
             input_array.append(input)
 
     # Put remaining, valid words into 'words' list
-    words = []
-    for word in Wordle.objects.filter(date__isnull=True):
-        valid = True
-        for attempt in input_array:
-            count = 0
-            for letter, colour in attempt:
-                if not check(count, colour, letter, word.word, attempt): valid = False
-                count += 1
-        if valid: words.append(word)
+    words = get_valid_words(input_array)
 
     # Get fav word
     counter, fav_word = get_fav_word(words)
 
-    # Get the words again to access the new scores
+    # Retrieve the words again (so that they have the new scores)
     words = Wordle.objects.filter(score__gte=1)
     random_item = Wordle.objects.filter(date__isnull=True).order_by('?').first()
 
@@ -150,6 +218,8 @@ def wordle(request):
     words = sorted(words, key=lambda x: x.score, reverse=True)
     green1, green2, green3, green4, green5 = "", "", "", "", "",
     numbers = ["1x","2x","3x","4x","5x",]
+
+    print("Input array:\n", input_array)
 
     context = {'words': words, 'numbers': numbers, 'fav_word': fav_word, 'input_array': input_array, 'counter': counter, 'random_item': random_item,
                'entry':entry, 'green1': green1, 'green2': green2, 'green3': green3, 'green4': green4, 'green5': green5,}
@@ -172,6 +242,7 @@ def past_words(request):
     #             existing.date = date
     #             existing.save()
 
+    attempts_range = []
     remaining_words = Wordle.objects.filter(date__isnull=True).order_by('word')
     used_words = Wordle.objects.filter(date__isnull=False).order_by('-date')
     context = {'used_words': used_words, 'remaining_words': remaining_words}

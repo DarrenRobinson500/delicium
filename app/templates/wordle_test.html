@@ -1,0 +1,39 @@
+{% extends 'base.html'%}
+{% block content %}
+
+<style>
+    .green {background-color:green;}
+    .amber {background-color:orange;}
+    .grey {background-color:grey;}
+</style>
+
+<div class="row">
+    <div class="col-sm-4">
+        <h2>Puzzle: {{word}}</h2>
+        <table class='table table-sm' style="text-align: center;">
+            {% for word in input_array %}
+                <tr>
+                {% for letter, colour in word %}
+                    <td style="background-color: {{ colour }}; color: white; font-weight: bold;">{{ letter | capfirst }}</td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+        Count: {{ words | length }} / {{ remaining_words }}<br>
+    </div>
+    {% for x, number in attempts_range %}
+        <div class="col-sm-1">
+            <b>{{ x }} att<br>({{ number }})</b><br>
+            {% for word in words %}
+                {% if word.attempts == x %}<a href="{% url 'wordle_test' word.id %}" >{{ word.upper }}</a>{% endif %}
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+
+</div>
+
+
+
+
+{% endblock %}

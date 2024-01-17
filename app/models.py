@@ -50,9 +50,6 @@ class Event(Model):
     date = DateField(auto_now=False, null=True)
     def __str__(self): return "[" + str(self.date) + "] " + self.description[0:50]
 
-
-
-
 class Category(Model):
     string_name = "Category"
     name = TextField(null=True, blank=True)
@@ -138,7 +135,7 @@ class Dog(Model):
     owners = TextField(null=True, blank=True)
     notes = TextField(null=True, blank=True)
     image = ImageField(null=True, blank=True, upload_to="images/")
-    owners_link = ForeignKey(Note, null=True, on_delete=SET_NULL)
+    owners_link = ForeignKey(Note, null=True, on_delete=SET_NULL, blank=True)
     def __str__(self):
         return self.name
 
@@ -338,16 +335,15 @@ class MaxTemp(Model):
 
 class Wordle(Model):
     word = CharField(max_length=5, null=True)
-    date = DateField(null=True)
+    date = DateField(null=True, blank=False)
     score = IntegerField(null=True, blank=True)
+    attempts = IntegerField(null=True, blank=True)
     def __str__(self):
         if self.date:
             return f"{self.word} ({self.date})"
         else:
             return self.word
-    def upper(self):
-        return self.word.upper()
-
+    def upper(self): return self.word.upper()
 
 def min_days_to_birthday():
     birthday_objects = Birthday.objects.all()
@@ -365,8 +361,8 @@ def get_birthday_reminders():
         # print(object, object.next_age_days(), object.reminder_days, object.next_age_days() == object.reminder_days)
         if object.next_age_days() == object.reminder_days:
             text += object.next_age() + ". "
-        if object.next_age_days() == 0:
-            text += f"It is {object.person}'s birthday today. "
+        if object.next_age_days() == 2:
+            text += f"It is {object.person}'s birthday tomorrow. "
     return text
 
 all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement, New_Tide, Tide_Date, Weather, Wordle]

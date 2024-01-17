@@ -3,6 +3,11 @@
     <a class="navbar-brand" href="{% url 'home' %}">PinkYak</a>
 
     {% if user.is_authenticated %}
+      {% if user.first_name == "Amanda" %}
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link active" href="{% url 'dogs' %}">Dogs</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{% url 'dog_diary' %}">Diary</a></li>
+      {% else %}
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item"><a class="nav-link active" href="{% url 'diary' %}">Diary</a></li>
         <li class="nav-item"><a class="nav-link active" href="{% url 'events' %}">Events</a></li>
@@ -20,7 +25,8 @@
         <li class="nav-item nav-link">Hello {{ user.first_name }}</a></li>
         <li class="nav-item"><a class="nav-link active" href="{% url 'logout' %}">Log out</a></li>
       </ul>
-    {% else %}
+    {% endif %}
+   {% else %}
       <ul class="nav justify-content-end">
         <li class="nav-item"><a class="nav-link active" href="{% url 'clash' %}">Clash</a></li>
         <li class="nav-item"><a class="nav-link active" href="{% url 'timers' %}">Timer</a></li>
@@ -28,6 +34,6 @@
         <li class="nav-item"><a class="nav-link active" href="{% url 'word'%}">Word</a></li>
         <li class="nav-item"><a class="nav-link active" href="{% url 'login' %}">Login</a></li>
       </ul>
-    {% endif %}
+   {% endif %}
   </div>
 </nav>
