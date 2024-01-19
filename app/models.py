@@ -345,6 +345,44 @@ class Wordle(Model):
             return self.word
     def upper(self): return self.word.upper()
 
+class TennisPlayer(Model):
+    name = CharField(max_length=30, null=True)
+    def __str__(self):
+        return self.name
+
+class TennisGame(Model):
+    player_A = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_A")
+    player_B = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_B")
+    score_A = IntegerField(null=True, blank=True, default=0)
+    score_B = IntegerField(null=True, blank=True, default=0)
+    game_score_A = IntegerField(null=True, blank=True, default=0)
+    game_score_B = IntegerField(null=True, blank=True, default=0)
+
+    game_date = DateField(null=True, blank=False)
+    name = CharField(max_length=30, null=True)
+    def __str__(self):
+        return self.name
+    def score(self):
+        if self.score_A == 3 and self.score_B == 3: return "Deuce"
+        scores = [0, 15, 30, 40, "Ad"]
+        return f"{scores[min(self.score_A, 4)]}-{scores[min(self.score_B, 4)]}"
+    def game_score(self):
+        return f"{self.game_score_A}-{self.game_score_B}"
+
+
+class TennisGameScore(Model):
+    game = ForeignKey(TennisGame, null=True, blank=True, on_delete=CASCADE)
+    score = IntegerField(null=True, blank=True)
+
+class TennisSetScore(Model):
+    game = ForeignKey(TennisGame, null=True, blank=True, on_delete=CASCADE)
+    set = IntegerField(null=True, blank=True)
+    score = IntegerField(null=True, blank=True)
+
+def get_player(name):
+    player = TennisPlayer.objects.filter(name=name).first()
+    return player
+
 def min_days_to_birthday():
     birthday_objects = Birthday.objects.all()
     minimum = 365
@@ -365,5 +403,7 @@ def get_birthday_reminders():
             text += f"It is {object.person}'s birthday tomorrow. "
     return text
 
-all_models = [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement, New_Tide, Tide_Date, Weather, Wordle]
+all_models = \
+    [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement,
+     New_Tide, Tide_Date, Weather, Wordle, TennisPlayer]
 

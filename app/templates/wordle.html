@@ -16,18 +16,22 @@
         <a href="{% url 'wordle_test' %}" class='btn btn-outline-secondary btn-sm'>Test</a><br><br>
     </div>
     <div class="col-sm-4">
-        <h2>Puzzle</h2>
-        <table class='table table-sm' style="text-align: center;">
-            {% for word in input_array %}
-                <tr>
-                {% for letter, colour in word %}
-                    <td style="background-color: {{ colour }}; color: white; font-weight: bold;">{{ letter | capfirst }}</td>
-                {% endfor %}
-                </tr>
-            {% endfor %}
-        </table>
         <form action="/wordle" method="POST">
         {% csrf_token %}
+<!--Previous Words-->
+            <h2>Puzzle</h2>
+            <table class='table table-sm' style="text-align: center;">
+                {% for word in input_array %}
+                    <input type="hidden" name="Prior{{forloop.counter}}" value="{{ word }}"></td>
+                    <tr>
+                    {% for letter, colour in word %}
+                        <td style="background-color: {{ colour }}; color: white; font-weight: bold;">{{ letter | capfirst }}</td>
+                    {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+
+<!--Current Word-->
             <table class='table table-responsive table-striped table-hover table-bordered table-sm'>
                 <tr>
                     {% for x in entry %}
@@ -68,6 +72,10 @@
         {% endfor %}
         <h2>Random</h2>
         {{ random_item.upper }}
+        <h2>Used words</h2>
+        {% for word in used_words %}
+            {{ word.word.upper }} ({{ word.date }})<br>
+        {% endfor %}
     </div>
 </div>
 

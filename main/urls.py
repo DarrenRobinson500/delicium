@@ -68,5 +68,8 @@ urlpatterns = [
     path('timers', timers, name='timers'),
     path('timer/<id>', timer, name='timer'),
     path('tides', tides, name='tides'),
+    path('tennis', tennis, name='tennis'),
+    path('tennis_game', tennis_game, name='tennis_game'),
+    path('tennis_score/<id>/<a>/<b>', tennis_score, name='tennis_score'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

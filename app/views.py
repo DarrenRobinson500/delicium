@@ -15,7 +15,9 @@ Dog_Diary = namedtuple('Dog_Diary', ['date', 'bookings'])
 
 def home(request):
     if not request.user.is_authenticated: return redirect("login")
-    return redirect("dog_diary")
+    if request.user == "Amanda":
+        return redirect("dog_diary")
+    return redirect('notes')
 
 def login_user(request):
     if request.method == "POST":
@@ -505,3 +507,42 @@ def tides(request):
     tide_dates = Tide_Date.objects.filter(date__lte=end_date).filter(date__gte=today).order_by('date')
     context = {'tide_dates': tide_dates}
     return render(request, 'tides.html', context)
+
+def tennis(request):
+    player_A = get_player("Michael")
+    player_B = get_player("Jacob")
+
+    context = {"player_A": player_A, "player_B": player_B}
+    return render(request, 'tennis.html', context)
+
+def tennis_game(request):
+    player_A = get_player("Michael")
+    player_B = get_player("Jacob")
+    game = TennisGame(player_A=player_A, player_B=player_B)
+    game.save()
+
+    context = {"game": game}
+    return render(request, 'tennis_game.html', context)
+
+def tennis_score(request, id, a, b):
+    a, b = int(a), int(b)
+    game = TennisGame.objects.get(id=id)
+    game.score_A += a
+    game.score_B += b
+    game.score_A = min(max(game.score_A, 0), 5)
+    game.score_B = min(max(game.score_B, 0), 5)
+    if game.score_A >= 4 and game.score_A - game.score_B > 1:
+        game.score_A = 0
+        game.score_B = 0
+        game.game_score_A += 1
+    if game.score_B >= 4 and game.score_B - game.score_A > 1:
+        game.score_A = 0
+        game.score_B = 0
+        game.game_score_B += 1
+    if game.score_A == 4 and game.score_B == 4:
+        game.score_A = 3
+        game.score_B = 3
+
+    game.save()
+    context = {"game": game}
+    return render(request, 'tennis_game.html', context)
