@@ -61,6 +61,7 @@ urlpatterns = [
     path('wordle_test', wordle_test, name='wordle_test'),
     path('wordle_test/<id>', wordle_test, name='wordle_test'),
     path('wordle/<entry>', wordle, name='wordle'),
+    path('wordle_clear/<id>', wordle_clear, name='wordle_clear'),
     path('add_wordle/<word>', add_wordle, name='add_wordle'),
     path('past_words', past_words, name='past_words'),
     path('word', word, name='word'),

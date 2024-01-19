@@ -54,6 +54,7 @@ def count_same_letters(words):
     return same_letters
 
 def add_wordle(request, word):
+    if not request.user.is_authenticated: return redirect("login")
     today = date.today()
     existing = Wordle.objects.filter(date=today).first()
     if existing:
@@ -68,6 +69,13 @@ def add_wordle(request, word):
     else:
         messages.success(request, f"'{word}' wasn't found in database")
     return redirect("wordle_test")
+
+def wordle_clear(request, id):
+    object = Wordle.objects.get(id=id)
+    object.date = None
+    object.save()
+    return redirect('wordle')
+
 
 def get_fav_word(wordles):
     Wordle.objects.all().update(score=0)
@@ -136,6 +144,7 @@ def get_max_attempts():
     return max_attempts
 
 def wordle_test(request, id=None):
+    if not request.user.is_authenticated: return redirect("login")
 
     all_wordles_done = False
     for x in range(5):
@@ -176,6 +185,7 @@ def wordle_test(request, id=None):
     return render(request, "wordle_test.html", context)
 
 def wordle(request):
+    if not request.user.is_authenticated: return redirect("login")
     # all_wordles = Wordle.objects.all()
     # for word in all_words:
     #     if len(all_wordles.filter(word=word)) == 0:
@@ -247,6 +257,7 @@ def clear(request):
     return redirect("wordle")
 
 def past_words(request):
+    if not request.user.is_authenticated: return redirect("login")
     # workbook = load_workbook('excel/past_wordles.xlsx')
     # worksheet = workbook.worksheets[0]
     # for row in worksheet.iter_rows():
