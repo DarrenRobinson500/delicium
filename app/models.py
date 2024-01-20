@@ -4,6 +4,12 @@ from datetime import datetime, date, timedelta, time
 from django.db.models.functions import ExtractMonth, ExtractDay
 from ckeditor.fields import RichTextField
 
+class General(Model):
+    name = CharField(max_length=30, default="main")
+    dog_diary_days = IntegerField(default=200)
+    wordles_to_do = IntegerField(default=3)
+    def __str__(self): return self.name
+
 class Shop(Model):
     string_name = "Shop"
     name = TextField(null=True, blank=True)
@@ -134,6 +140,7 @@ class Dog(Model):
     name = TextField(null=True, blank=True)
     owners = TextField(null=True, blank=True)
     notes = TextField(null=True, blank=True)
+    approved = CharField(default="Yes", choices=[("Yes", "Yes"), ("No", "No"), ("Limited", "Limited")])
     image = ImageField(null=True, blank=True, upload_to="images/")
     owners_link = ForeignKey(Note, null=True, on_delete=SET_NULL, blank=True)
     def __str__(self):
@@ -335,7 +342,14 @@ class MaxTemp(Model):
 
 class Wordle(Model):
     word = CharField(max_length=5, null=True)
+    guess_1 = CharField(max_length=5, null=True)
+    guess_2 = CharField(max_length=5, null=True)
+    guess_3 = CharField(max_length=5, null=True)
+    guess_4 = CharField(max_length=5, null=True)
+    guess_5 = CharField(max_length=5, null=True)
+    guess_6 = CharField(max_length=5, null=True)
     date = DateField(null=True, blank=False)
+    last_reviewed = DateField(null=True, blank=False, default=None)
     score = IntegerField(null=True, blank=True)
     attempts = IntegerField(null=True, blank=True)
     def __str__(self):
@@ -344,40 +358,77 @@ class Wordle(Model):
         else:
             return self.word
     def upper(self): return self.word.upper()
+    def save_guess(self, guess, count):
+        if guess is None: return
+        guess_str = guess.word[0:5]
+        if count == 1:
+            self.guess_1 = guess_str
+            self.guess_2 = None
+            self.guess_3 = None
+            self.guess_4 = None
+            self.guess_5 = None
+            self.guess_6 = None
+        if count == 2: self.guess_2 = guess_str
+        if count == 3: self.guess_3 = guess_str
+        if count == 4: self.guess_4 = guess_str
+        if count == 5: self.guess_5 = guess_str
+        if count == 6: self.guess_6 = guess_str
+        self.save()
+
 
 class TennisPlayer(Model):
     name = CharField(max_length=30, null=True)
     def __str__(self):
         return self.name
 
-class TennisGame(Model):
+class TennisMatch(Model):
     player_A = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_A")
     player_B = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_B")
     score_A = IntegerField(null=True, blank=True, default=0)
     score_B = IntegerField(null=True, blank=True, default=0)
-    game_score_A = IntegerField(null=True, blank=True, default=0)
-    game_score_B = IntegerField(null=True, blank=True, default=0)
 
     game_date = DateField(null=True, blank=False)
     name = CharField(max_length=30, null=True)
     def __str__(self):
         return self.name
-    def score(self):
+    def game_score(self):
         if self.score_A == 3 and self.score_B == 3: return "Deuce"
         scores = [0, 15, 30, 40, "Ad"]
-        return f"{scores[min(self.score_A, 4)]}-{scores[min(self.score_B, 4)]}"
-    def game_score(self):
-        return f"{self.game_score_A}-{self.game_score_B}"
+        return f"{scores[min(self.score_A, 4)]} - {scores[min(self.score_B, 4)]}"
+    def sets(self):
+        return TennisSet.objects.filter(match=self)
+
+class TennisSet(Model):
+    match = ForeignKey(TennisMatch, null=True, blank=True, on_delete=CASCADE)
+    set_no = IntegerField(null=True, blank=True)
+    def score(self):
+        games = TennisGame.objects.filter(set=self)
+        sets_A, sets_B = 0, 0
+        for game in games:
+            if game.score_A > game.score_B: sets_A += 1
+            if game.score_B > game.score_A: sets_B += 1
+        return f"<b>Set {self.set_no}: </b>{sets_A} - {sets_B}"
+    def game_scores(self):
+        games = TennisGame.objects.filter(set=self).order_by('game_no')
+        games_string = ""
+        for game in games:
+            games_string += f"<b>Game {game.game_no}:</b> {game.score()}<br>"
+        return games_string
+    def next_game_number(self):
+        games = TennisGame.objects.filter(set=self).order_by('-game_no')
+        if len(games) == 0: return 1
+        return games[0].game_no + 1
 
 
-class TennisGameScore(Model):
-    game = ForeignKey(TennisGame, null=True, blank=True, on_delete=CASCADE)
-    score = IntegerField(null=True, blank=True)
-
-class TennisSetScore(Model):
-    game = ForeignKey(TennisGame, null=True, blank=True, on_delete=CASCADE)
-    set = IntegerField(null=True, blank=True)
-    score = IntegerField(null=True, blank=True)
+class TennisGame(Model):
+    set = ForeignKey(TennisSet, null=True, blank=True, on_delete=CASCADE)
+    game_no = IntegerField(null=True, blank=True)
+    score_A = IntegerField(null=True, blank=True)
+    score_B = IntegerField(null=True, blank=True)
+    def score(self):
+        if self.score_A == 3 and self.score_B == 3: return "Deuce"
+        scores = [0, 15, 30, 40, "W"]
+        return f"{scores[min(self.score_A, 4)]} - {scores[min(self.score_B, 4)]}"
 
 def get_player(name):
     player = TennisPlayer.objects.filter(name=name).first()
@@ -405,5 +456,5 @@ def get_birthday_reminders():
 
 all_models = \
     [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement,
-     New_Tide, Tide_Date, Weather, Wordle, TennisPlayer]
+     New_Tide, Tide_Date, Weather, Wordle, TennisPlayer, General]
 

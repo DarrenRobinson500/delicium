@@ -122,17 +122,24 @@ def solve_wordle(wordle):
     input_array.clear()
     words = get_valid_words(input_array)
     counter, fav_word = get_fav_word(words)
+    # wordle.save_guess(fav_word, 1)
+    count = 1
     while fav_word != wordle:
         words = get_valid_words(input_array)
         counter, fav_word = get_fav_word(words)
+        wordle.save_guess(fav_word, count)
+        count += 1
         colours = determine_colours(wordle.word, fav_word.word)
         input = []
         for x in range(5): input.append((fav_word.word[x], colours[x]))
         input_array.append(input)
+        # Fav word is solved => save it.
         fav_word.attempts = len(input_array)
+        fav_word.last_reviewed = date.today()
         fav_word.save()
 
     wordle.attempts = len(input_array)
+    wordle.last_reviewed = date.today()
     wordle.save()
 
 def get_max_attempts():
@@ -146,25 +153,25 @@ def get_max_attempts():
 def wordle_test(request, id=None):
     if not request.user.is_authenticated: return redirect("login")
 
-    all_wordles_done = False
-    for x in range(5):
-        input_array.clear()
-        wordle = Wordle.objects.filter(date__isnull=True).filter(attempts__isnull=True).order_by('?').first()
-        if wordle:
-            solve_wordle(wordle)
-            print(f"Loop: {x + 1} - {wordle.upper()} ({wordle.attempts})")
-        else:
-            all_wordles_done = True
+    # all_wordles_done = False
+    # for x in range(5):
+    #     input_array.clear()
+    #     wordle = Wordle.objects.filter(date__isnull=True).filter(attempts__isnull=True).order_by('?').first()
+    #     if wordle:
+    #         solve_wordle(wordle)
+    #         print(f"Loop: {x + 1} - {wordle.upper()} ({wordle.attempts})")
+    #     else:
+    #         all_wordles_done = True
 
-    if all_wordles_done:
-        max_attempts = get_max_attempts()
-        wordles = Wordle.objects.filter(attempts=max_attempts).order_by('?')
-        count = 0
-        for wordle in wordles:
-            if count < 3:
-                solve_wordle(wordle)
-                print(f"Redoing '{wordle.word.upper()}'")
-            count += 1
+    # if all_wordles_done:
+    # max_attempts = get_max_attempts()
+    # wordles = Wordle.objects.filter(attempts=max_attempts).order_by('?')
+    wordles_to_do = General.objects.get(name="main").wordles_to_do
+
+    wordles = Wordle.objects.filter(date__isnull=True).order_by('-last_reviewed')[0:wordles_to_do]
+    for wordle in wordles:
+        print(f"Redoing '{wordle.word.upper()}'")
+        solve_wordle(wordle)
 
     words = Wordle.objects.filter(attempts__isnull=False).order_by('word')
 
@@ -172,16 +179,30 @@ def wordle_test(request, id=None):
         wordle = Wordle.objects.get(id=id)
         solve_wordle(wordle)
 
+    # Categorisation of attempts
     attempts_range = []
     categories = Wordle.objects.values('attempts').annotate(count=Count('attempts'))
+    no, total = 0, 0
     for category in categories:
         if category['attempts']:
             attempts_range.append((category['attempts'], category['count']))
+            no += category['count'] * category['attempts']
+            total += category['count']
     attempts_range = sorted(attempts_range, key=lambda x: x[0])
+    score = round(no/total, 2)
+
+    # Categorisation of second work
+    categories_second_word = Wordle.objects.values('guess_2').annotate(count=Count('guess_2'))
+    second_word_array = []
+    for category in categories_second_word:
+        second_word_array.append((category['guess_2'], category['count']))
+    second_word_array = sorted(second_word_array, key=lambda x: (x[1] is None, x[1]), reverse=True)
+
+    # my_list.sort(key=lambda x: (x is None, x))
 
     remaining_words = len(Wordle.objects.filter(date__isnull=True))
 
-    context = {'word': word, 'input_array': input_array, 'words': words, 'attempts_range': attempts_range, 'remaining_words': remaining_words}
+    context = {'word': wordle.word.upper(), 'input_array': input_array, 'words': words, 'attempts_range': attempts_range, 'remaining_words': remaining_words, 'score': score, 'second_word_array': second_word_array}
     return render(request, "wordle_test.html", context)
 
 def wordle(request):

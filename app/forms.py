@@ -18,9 +18,10 @@ class EventForm(ModelForm):
 class DogForm(ModelForm):
     class Meta:
         model = Dog
-        fields = ['name', 'owners', 'owners_link', 'notes', 'image', ]
+        fields = ['name', 'owners', 'owners_link', 'notes', 'image', "approved"]
         widgets = {
             'owners_link': Select(attrs={'class': 'form-control'}),
+            'approved': Select(attrs={'class': 'form-control'}),
         }
 
 class BookingForm(ModelForm):

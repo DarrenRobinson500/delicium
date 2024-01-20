@@ -9,7 +9,7 @@
 
 <div class="row">
     <div class="col-sm-4">
-        <h2>Puzzle: {{word}}</h2>
+        <h2>Solution: {{word}}</h2>
         <table class='table table-sm' style="text-align: center;">
             {% for word in input_array %}
                 <tr>
@@ -19,15 +19,27 @@
                 </tr>
             {% endfor %}
         </table>
-        Count: {{ words | length }} / {{ remaining_words }}<br>
+        Future Average Score: <b>{{ score }}</b> (originally 3.47)<br><br>
     </div>
+    <div class="col-sm-4">
+        <h2>Second Word</h2>
+        {% for word, count in second_word_array %}
+            {% if count > 3 %}
+                {{ word | upper }}: {{ count }}<br>
+            {% endif %}
+        {% endfor %}<br>
+    </div>
+</div>
+<div class="row">
     {% for x, number in attempts_range %}
-        <div class="col-sm-1">
+        {% if number > 1 %}
+        <div class="col-sm-2">
             <b>{{ x }} att<br>({{ number }})</b><br>
             {% for word in words %}
-                {% if word.attempts == x %}<a href="{% url 'wordle_test' word.id %}" >{{ word.upper }}</a>{% endif %}
+                {% if word.attempts == x %}<a href="{% url 'wordle_test' word.id %}" >{{ word.upper }}</a>{% if word.last_reviewed %} {{ word.last_reviewed }}{% endif %}<br>{% endif %}
             {% endfor %}
         </div>
+        {% endif %}
     {% endfor %}
 
 

@@ -141,9 +141,9 @@ def dogs(request):
         if form.is_valid(): form.save()
     objects = Dog.objects.all()
     objects = sorted(objects, key=lambda d: d.next_booking())
-
+    options = ["Yes", "No", "Limited"]
     count = len(objects)
-    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form, "edit_mode": False, 'people': people()}
+    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form, "edit_mode": False, 'people': people(), 'options':options}
     return render(request, 'dog.html', context)
 
 def dog_edit(request, id):
@@ -158,20 +158,22 @@ def dog_edit(request, id):
     objects = sorted(objects, key=lambda d: d.next_booking())
 
     count = len(objects)
-    context = {'objects': objects, 'title': "Dogs", 'count': count, "dog": dog, "edit_mode": True}
+    options = ["Yes", "No", "Limited"]
+    context = {'objects': objects, 'title': "Dogs", 'count': count, "dog": dog, "edit_mode": True,  'people': people(), 'options':options}
     return render(request, 'dog.html', context)
 
 def dog_diary(request):
     if not request.user.is_authenticated: return redirect("login")
+    general = General.objects.get(name="main")
     today = date.today()
     bookings = Booking.objects.filter(end_date__gte=today).order_by('start_date')
     dog_diary = []
-    for x in range(100):
+    for x in range(general.dog_diary_days):
         day = today + timedelta(days=x)
         day_bookings = bookings.filter(start_date__lte=day).filter(end_date__gte=day)
         new = Dog_Diary(day, day_bookings)
         dog_diary.append(new)
-    print(dog_diary)
+    # print(dog_diary)
     context = {'dog_diary': dog_diary}
     return render(request, 'dog_diary.html', context)
 
@@ -515,34 +517,38 @@ def tennis(request):
     context = {"player_A": player_A, "player_B": player_B}
     return render(request, 'tennis.html', context)
 
-def tennis_game(request):
+def tennis_match(request):
     player_A = get_player("Michael")
     player_B = get_player("Jacob")
-    game = TennisGame(player_A=player_A, player_B=player_B)
-    game.save()
+    match = TennisMatch(player_A=player_A, player_B=player_B)
+    match.save()
+    set = TennisSet(match=match, set_no=1)
+    set.save()
 
-    context = {"game": game}
-    return render(request, 'tennis_game.html', context)
+    context = {"match": match, "set": set}
+    return render(request, 'tennis_match.html', context)
+
+def save_game(set):
+    match = set.match
+    game = TennisGame(set=set, score_A=match.score_A, score_B=match.score_B, game_no=set.next_game_number())
+    game.save()
+    match.score_A = 0
+    match.score_B = 0
+    match.save()
 
 def tennis_score(request, id, a, b):
     a, b = int(a), int(b)
-    game = TennisGame.objects.get(id=id)
-    game.score_A += a
-    game.score_B += b
-    game.score_A = min(max(game.score_A, 0), 5)
-    game.score_B = min(max(game.score_B, 0), 5)
-    if game.score_A >= 4 and game.score_A - game.score_B > 1:
-        game.score_A = 0
-        game.score_B = 0
-        game.game_score_A += 1
-    if game.score_B >= 4 and game.score_B - game.score_A > 1:
-        game.score_A = 0
-        game.score_B = 0
-        game.game_score_B += 1
-    if game.score_A == 4 and game.score_B == 4:
-        game.score_A = 3
-        game.score_B = 3
-
-    game.save()
-    context = {"game": game}
-    return render(request, 'tennis_game.html', context)
+    set = TennisSet.objects.get(id=id)
+    match = set.match
+    match.score_A += a
+    match.score_B += b
+    match.score_A = min(max(match.score_A, 0), 5)
+    match.score_B = min(max(match.score_B, 0), 5)
+    if match.score_A >= 4 and match.score_A - match.score_B > 1: save_game(set)
+    if match.score_B >= 4 and match.score_B - match.score_A > 1: save_game(set)
+    if match.score_A == 4 and match.score_B == 4:
+        match.score_A = 3
+        match.score_B = 3
+    match.save()
+    context = {"match": match, "set": set}
+    return render(request, 'tennis_match.html', context)

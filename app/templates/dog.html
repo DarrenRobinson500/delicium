@@ -25,7 +25,10 @@
                     {{ item.owners }}
                 {% endif %}
             </td>
-            <td>{% if item.notes %} {{ item.notes }} {% endif %}</td>
+            <td>
+                {% if item.notes %} {{ item.notes }}<br> {% endif %}
+                Approved: {{ item.approved }}
+            </td>
             <td>
                 {% if item.image %}
                 <img src="{{ item.image.url }}" height="120"/>
@@ -74,8 +77,15 @@
                 <td class="p-3">
                     <label class="form-label">Notes</label>
                     <input type="text" name="notes" class="form-control" style="min-width:200px"
-                    {% if edit_mode %} {% if dog.notes %} value = "{{ dog.notes }}" placeholder = "{{ dog.notes }}" {% endif %} {% endif %}
-                    >
+                    {% if edit_mode %} {% if dog.notes %} value = "{{ dog.notes }}" placeholder = "{{ dog.notes }}" {% endif %} {% endif %}>
+
+                    <select name="approved" class="form-control" id="id_approved">
+                        {% for option in options %}
+                         <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+
+
                 </td>
                 <td class="p-3">
                     <label class="form-label">Picture</label>
