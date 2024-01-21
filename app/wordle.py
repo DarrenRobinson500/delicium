@@ -191,18 +191,21 @@ def wordle_test(request, id=None):
     attempts_range = sorted(attempts_range, key=lambda x: x[0])
     score = round(no/total, 2)
 
-    # Categorisation of second work
+    # Categorisation of second word
     categories_second_word = Wordle.objects.values('guess_2').annotate(count=Count('guess_2'))
     second_word_array = []
     for category in categories_second_word:
         second_word_array.append((category['guess_2'], category['count']))
-    second_word_array = sorted(second_word_array, key=lambda x: (x[1] is None, x[1]), reverse=True)
+    second_word_array = sorted(second_word_array, key=lambda x: (x[1] is None, x[1]), reverse=True)[0: 10]
 
     # my_list.sort(key=lambda x: (x is None, x))
 
-    remaining_words = len(Wordle.objects.filter(date__isnull=True))
+    remaining_words = Wordle.objects.filter(date__isnull=True)
+    remaining_words_not_tested = remaining_words.filter(last_reviewed__isnull=True)
+    message = f"Proportion of words tested: {int((1-len(remaining_words_not_tested)/len(remaining_words))*100)}%"
 
-    context = {'word': wordle.word.upper(), 'input_array': input_array, 'words': words, 'attempts_range': attempts_range, 'remaining_words': remaining_words, 'score': score, 'second_word_array': second_word_array}
+    context = {'word': wordle.word.upper(), 'input_array': input_array, 'words': words, 'attempts_range': attempts_range,
+               'remaining_words': remaining_words, 'score': score, 'second_word_array': second_word_array, "message": message}
     return render(request, "wordle_test.html", context)
 
 def wordle(request):
