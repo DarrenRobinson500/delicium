@@ -21,7 +21,6 @@ client = Client(account_sid, auth_token)
 
 def send_sms():
     body = get_birthday_reminders()
-    print("Body:", body)
     if body != "":
         print(f"Sending SMS: {body}")
         client.messages.create(body=body, from_=my_twilio_number, to=target_number)

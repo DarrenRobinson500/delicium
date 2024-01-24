@@ -208,6 +208,12 @@ def wordle_test(request, id=None):
                'remaining_words': remaining_words, 'score': score, 'second_word_array': second_word_array, "message": message}
     return render(request, "wordle_test.html", context)
 
+def wordle_second(request, word):
+    wordle = Wordle.objects.get(word=word)
+    wordles = Wordle.objects.filter(guess_2=word).order_by('-attempts')
+    context = {"wordle": wordle, "wordles": wordles}
+    return render(request, "wordle_second.html", context)
+
 def wordle(request):
     if not request.user.is_authenticated: return redirect("login")
     # all_wordles = Wordle.objects.all()

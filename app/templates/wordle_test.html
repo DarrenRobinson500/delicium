@@ -26,9 +26,7 @@
     <div class="col-sm-4">
         <h2>Second Word</h2>
         {% for word, count in second_word_array %}
-            {% if count > 3 %}
-                {{ word | upper }}: {{ count }}<br>
-            {% endif %}
+            <a href="{% url 'wordle_second' word %}">{{ word | upper }}</a>: {{ count }}<br>
         {% endfor %}<br>
 
     </div>
@@ -39,7 +37,12 @@
         <div class="col-sm-2">
             <b>{{ x }} att<br>({{ number }})</b><br>
             {% for word in words %}
-                {% if word.attempts == x %}<a href="{% url 'wordle_test' word.id %}" >{{ word.upper }}</a>{% if word.last_reviewed %} {{ word.last_reviewed }}{% endif %}<br>{% endif %}
+                {% if word.attempts == x %}
+                    <a href="{% url 'wordle_test' word.id %}" >{{ word.upper }}</a>{% if word.last_reviewed %} {{ word.last_reviewed }}{% endif %}<br>
+                    {% if x == 7 %}
+                        {{ word.guess_1 }}, {{ word.guess_2 }}, {{ word.guess_3 }}, {{ word.guess_4 }}, {{ word.guess_5 }}, {{ word.guess_6 }}<br>
+                    {% endif %}
+                {% endif %}
             {% endfor %}
         </div>
         {% endif %}

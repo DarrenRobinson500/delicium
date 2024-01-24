@@ -7,6 +7,7 @@ from django.http import HttpResponse
 import pandas as pd
 import requests
 import socket
+import plotly.express as px
 
 from .forms import *
 
@@ -39,7 +40,6 @@ def logout_user(request):
     return redirect("login")
 
 def downloadpage(request):
-    print("Download page")
     context = {}
     return render(request, 'down_load.html', context)
 
@@ -49,7 +49,6 @@ def downloadexcel(request):
 
     writer = pd.ExcelWriter('my_data.xlsx', engine='xlsxwriter')
     for count, model in enumerate(all_models, 1):
-        print("Model name:", model.string_name)
         data = model.objects.all()
         df = pd.DataFrame(list(data.values()))
         df.to_excel(writer, sheet_name=f'{model.string_name}', index=False)
@@ -76,7 +75,6 @@ def shopping_save(request):
     if not request.user.is_authenticated: return redirect("login")
     objects = Shopping.objects.all()
     if request.method == 'POST':
-        print("Keys:", request.POST.keys())
         for object in objects:
             if f"checkbox{object.id}" in request.POST.keys():
                 object.buy = True
@@ -134,7 +132,6 @@ def shopping_reorder(request, dir, id):
 
 def dogs(request):
     if not request.user.is_authenticated: return redirect("login")
-    print(request.user)
     form = None
     if request.method == 'POST':
         form = DogForm(request.POST, request.FILES)
@@ -166,6 +163,11 @@ def dog_diary(request):
     if not request.user.is_authenticated: return redirect("login")
     general = General.objects.get(name="main")
     today = date.today()
+    dogs = Dog.objects.all()
+    dogs = sorted(dogs, key=lambda d: d.nights(), reverse=True)
+    dogs = dogs[0:8]
+    print(dogs)
+
     bookings = Booking.objects.filter(end_date__gte=today).order_by('start_date')
     dog_diary = []
     for x in range(general.dog_diary_days):
@@ -173,8 +175,28 @@ def dog_diary(request):
         day_bookings = bookings.filter(start_date__lte=day).filter(end_date__gte=day)
         new = Dog_Diary(day, day_bookings)
         dog_diary.append(new)
-    # print(dog_diary)
-    context = {'dog_diary': dog_diary}
+
+# Date Chart
+    fig = px.line(
+        x=[item.date for item in dog_diary],
+        y=[len(item.bookings) for item in dog_diary],
+        title="No of dogs",
+        labels={'x': "", 'y': "Number"}
+    )
+    fig.update_layout(
+        title={"font_size": 22, "xanchor": "center", "x": 0.5}
+    )
+    chart = fig.to_html()
+
+# Pie Chart
+    pie = px.pie(
+        names=[dog.name for dog in dogs],
+        values=[dog.nights() for dog in dogs],
+        hole=0.3,
+    )
+    chart_pie= pie.to_html()
+
+    context = {'dog_diary': dog_diary, "chart": chart, "chart_pie": chart_pie, }
     return render(request, 'dog_diary.html', context)
 
 
@@ -186,7 +208,6 @@ def booking(request, id):
     if request.method == 'POST':
         form = BookingForm(request.POST or None)
         form.instance.dog = dog
-        print(form.instance)
         if form.is_valid():
             new_booking = form.save()
             return redirect("dogs")
@@ -235,9 +256,6 @@ def edit_note(request, id):
         form = NoteForm(request.POST, instance=object)
         if form.is_valid():
             form.save()
-            # print("Note saved")
-            # for field in form:
-            #     print("Note saved:", field.name, field.value())
 
             messages.success(request, "Note saved")
             return redirect("note", object.id)
@@ -290,7 +308,6 @@ def down(request, id):
     return reorder(request, 1, id)
 
 def reorder(request, dir, id):
-    print("Reorder:", dir, id)
     object = Note.objects.filter(id=id).first()
     if object is None:
         pass
@@ -374,8 +391,6 @@ def events(request):
     end_date = today + timedelta(days=3)
     weather_check = Tide_Date.objects.filter(date=end_date).first().weather()
     if not weather_check:
-        print("Date object:", Tide_Date.objects.filter(date=end_date))
-        print("First one:", Tide_Date.objects.filter(date=end_date).first())
         get_weather()
 
     # Tides
@@ -423,10 +438,6 @@ def timers(request):
 
 def timer(request, id):
     timer = Timer.objects.get(id=id)
-    for element in timer.elements():
-        print(element)
-        print(element.short_name())
-
     context = {'timer': timer}
     return render(request, "timer.html", context)
 

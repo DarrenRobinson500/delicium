@@ -1,0 +1,9 @@
+{% extends 'base.html'%}
+{% block content %}
+<h1>Second Word Analysis: {{ wordle | upper }}</h1>
+<ul>
+    {% for item in wordles %}
+    <li>{{ item.word }}: {{ item.attempts }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

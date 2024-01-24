@@ -131,8 +131,6 @@ class Note(Model):
 
 def people():
     people_category = Category.objects.filter(name="People").first()
-    print("People category", people_category)
-    print("People category id", people_category.id)
     return Note.objects.filter(category=people_category)
 
 class Dog(Model):
@@ -150,6 +148,13 @@ class Dog(Model):
         bookings = Booking.objects.filter(dog=self).order_by('start_date')
         # print(self, bookings)
         return bookings
+
+    def nights(self):
+        total = 0
+        for booking in self.bookings():
+            total += booking.nights_int()
+        return total
+
 
     def next_booking(self):
         today = date.today()
@@ -178,6 +183,9 @@ class Booking(Model):
 
     def date(self):
         return self.start_date
+
+    def nights_int(self):
+        return (self.end_date - self.start_date).days
 
     def nights(self):
         try:
@@ -447,7 +455,6 @@ def get_birthday_reminders():
     text = ""
     objects = Birthday.objects.all().order_by(ExtractMonth('date'), ExtractDay('date'))
     for object in objects:
-        # print(object, object.next_age_days(), object.reminder_days, object.next_age_days() == object.reminder_days)
         if object.next_age_days() == object.reminder_days:
             text += object.next_age() + ". "
         if object.next_age_days() == 2:
