@@ -66,6 +66,8 @@ def add_wordle(request, word):
         object.date = today
         object.save()
         messages.success(request, f"'{word}' recorded as today's word")
+
+
     else:
         messages.success(request, f"'{word}' wasn't found in database")
     return redirect("wordle_test")
@@ -173,6 +175,24 @@ def wordle_test(request, id=None):
         print(f"Redoing '{wordle.word.upper()}'")
         solve_wordle(wordle)
 
+    todays_word = Wordle.objects.filter(date__isnull=False).order_by('-date')[0].word
+    print("Today's word:", todays_word)
+    todays_word = "pouty"
+    affected_1 = Wordle.objects.filter(guess_1=todays_word)
+    affected_2 = Wordle.objects.filter(guess_2=todays_word)
+    affected_3 = Wordle.objects.filter(guess_3=todays_word)
+    affected_4 = Wordle.objects.filter(guess_4=todays_word)
+    affected_5 = Wordle.objects.filter(guess_5=todays_word)
+    affected_6 = Wordle.objects.filter(guess_6=todays_word)
+    affected = affected_1 | affected_2 | affected_3 | affected_4 | affected_5 | affected_6
+    # print(affected)
+    for wordle in affected:
+        print(f"Redoing '{wordle.word.upper()}'")
+        if wordle.last_reviewed != date.today():
+            solve_wordle(wordle)
+
+
+
     words = Wordle.objects.filter(attempts__isnull=False).order_by('word')
 
     if id:
@@ -200,12 +220,16 @@ def wordle_test(request, id=None):
 
     # my_list.sort(key=lambda x: (x is None, x))
 
+
+
+
     remaining_words = Wordle.objects.filter(date__isnull=True)
     remaining_words_not_tested = remaining_words.filter(last_reviewed__isnull=True)
     message = f"Proportion of words tested: {int((1-len(remaining_words_not_tested)/len(remaining_words))*100)}%"
 
     context = {'word': wordle.word.upper(), 'input_array': input_array, 'words': words, 'attempts_range': attempts_range,
-               'remaining_words': remaining_words, 'score': score, 'second_word_array': second_word_array, "message": message}
+               'remaining_words': remaining_words, 'score': score, 'second_word_array': second_word_array, "message": message,
+               "todays": todays_word}
     return render(request, "wordle_test.html", context)
 
 def wordle_second(request, word):
@@ -216,6 +240,7 @@ def wordle_second(request, word):
 
 def wordle(request):
     if not request.user.is_authenticated: return redirect("login")
+
     # all_wordles = Wordle.objects.all()
     # for word in all_words:
     #     if len(all_wordles.filter(word=word)) == 0:

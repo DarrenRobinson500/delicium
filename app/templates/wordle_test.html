@@ -38,7 +38,12 @@
             <b>{{ x }} att<br>({{ number }})</b><br>
             {% for word in words %}
                 {% if word.attempts == x %}
-                    <a href="{% url 'wordle_test' word.id %}" >{{ word.upper }}</a>{% if word.last_reviewed %} {{ word.last_reviewed }}{% endif %}<br>
+                    <a href="{% url 'wordle_test' word.id %}"
+                    {% if todays == word.guess_2 or todays == word.guess_3 or todays == word.guess_4 or todays == word.guess_5 or todays == word.guess_6 %}
+                        style="color: red;"
+                    {% endif %}
+                    >{{ word.upper }}</a>{% if word.last_reviewed %} {{ word.last_reviewed }}{% endif %}<br>
+
                     {% if x == 7 %}
                         {{ word.guess_1 }}, {{ word.guess_2 }}, {{ word.guess_3 }}, {{ word.guess_4 }}, {{ word.guess_5 }}, {{ word.guess_6 }}<br>
                     {% endif %}

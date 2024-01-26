@@ -8,6 +8,7 @@ import pandas as pd
 import requests
 import socket
 import plotly.express as px
+from dash import Dash, html
 
 from .forms import *
 
@@ -163,10 +164,6 @@ def dog_diary(request):
     if not request.user.is_authenticated: return redirect("login")
     general = General.objects.get(name="main")
     today = date.today()
-    dogs = Dog.objects.all()
-    dogs = sorted(dogs, key=lambda d: d.nights(), reverse=True)
-    dogs = dogs[0:8]
-    print(dogs)
 
     bookings = Booking.objects.filter(end_date__gte=today).order_by('start_date')
     dog_diary = []
@@ -189,6 +186,20 @@ def dog_diary(request):
     chart = fig.to_html()
 
 # Pie Chart
+    dogs = Dog.objects.all()
+    dogs = sorted(dogs, key=lambda d: d.nights(), reverse=True)
+    dogs = dogs[0:8]
+    dogs_data = [
+        {
+            "name": dog.name,
+            "nights": dog.nights()
+        } for dog in dogs
+    ]
+
+    df = pd.DataFrame(dogs_data)
+
+    pie = px.pie(df)
+
     pie = px.pie(
         names=[dog.name for dog in dogs],
         values=[dog.nights() for dog in dogs],

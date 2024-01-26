@@ -382,6 +382,17 @@ class Wordle(Model):
         if count == 5: self.guess_5 = guess_str
         if count == 6: self.guess_6 = guess_str
         self.save()
+    def colour(self):
+        todays_word = Wordle.objects.filter(date__isnull=False).order_by('-date')[0]
+        # print(todays_word)
+        # if todays_word:
+        #     print(self.word)
+        #     print(todays_word.word)
+        #     print(self.guess_1)
+        if todays_word.word in [self.guess_1, self.guess_2, self.guess_3, self.guess_4, self.guess_5]:
+            return "red"
+        else:
+            return "blue"
 
 
 class TennisPlayer(Model):

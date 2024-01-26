@@ -10,6 +10,7 @@ class ShoppingForm(ModelForm):
             'name': TextInput(attrs={'class':'form-control', 'placeholder': "Item"}),
             'shop': Select(attrs={'class': 'form-control'}),
         }
+
 class EventForm(ModelForm):
     class Meta:
         model = Event
