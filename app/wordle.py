@@ -188,10 +188,12 @@ def wordle_test(request, id=None):
     # print(affected)
     for wordle in affected:
         if wordle.last_reviewed != date.today():
-            print(f"Redoing '{wordle.word.upper()}'")
-            solve_wordle(wordle)
-        else:
-            print(f"Not redoing '{wordle.word.upper()}'")
+            wordle.last_reviewed = None
+            wordle.save()
+            # print(f"Redoing '{wordle.word.upper()}'")
+            # solve_wordle(wordle)
+        # else:
+            # print(f"Not redoing '{wordle.word.upper()}'")
 
 
     words = Wordle.objects.filter(attempts__isnull=False).order_by('word')
