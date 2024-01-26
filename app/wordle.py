@@ -177,7 +177,7 @@ def wordle_test(request, id=None):
 
     todays_word = Wordle.objects.filter(date__isnull=False).order_by('-date')[0].word
     print("Today's word:", todays_word)
-    todays_word = "pouty"
+    # todays_word = "pouty"
     affected_1 = Wordle.objects.filter(guess_1=todays_word)
     affected_2 = Wordle.objects.filter(guess_2=todays_word)
     affected_3 = Wordle.objects.filter(guess_3=todays_word)
@@ -187,10 +187,11 @@ def wordle_test(request, id=None):
     affected = affected_1 | affected_2 | affected_3 | affected_4 | affected_5 | affected_6
     # print(affected)
     for wordle in affected:
-        print(f"Redoing '{wordle.word.upper()}'")
         if wordle.last_reviewed != date.today():
+            print(f"Redoing '{wordle.word.upper()}'")
             solve_wordle(wordle)
-
+        else:
+            print(f"Not redoing '{wordle.word.upper()}'")
 
 
     words = Wordle.objects.filter(attempts__isnull=False).order_by('word')
