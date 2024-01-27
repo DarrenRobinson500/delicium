@@ -189,6 +189,9 @@ class Booking(Model):
     def date(self):
         return self.start_date
 
+    def in_future(self):
+        return self.end_date >= date.today()
+
     def nights_int(self):
         return (self.end_date - self.start_date).days
 
