@@ -30,7 +30,7 @@
                 Approved: {{ item.approved }}
             </td>
             <td>
-                {% if item.image %}
+                {% if show_images and item.image %}
                 <img src="{{ item.image.url }}" height="120"/>
                 {% endif %}
             </td>
@@ -88,6 +88,7 @@
 
                 </td>
                 <td class="p-3">
+
                     <label class="form-label">Picture</label>
                     <input type="file" name="image" class="form-control" style="min-width:200px" accept="image/*">
                 </td>

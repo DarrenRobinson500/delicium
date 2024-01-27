@@ -140,8 +140,11 @@ def dogs(request):
     objects = Dog.objects.all()
     objects = sorted(objects, key=lambda d: d.next_booking())
     options = ["Yes", "No", "Limited"]
+    show_images = socket.gethostname() == "Mum_and_Dads"
+
     count = len(objects)
-    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form, "edit_mode": False, 'people': people(), 'options':options}
+    context = {'objects': objects, 'title': "Dogs", 'count': count, "form": form, "edit_mode": False, 'people': people(),
+               'options':options, 'show_images': show_images}
     return render(request, 'dog.html', context)
 
 def dog_edit(request, id):
