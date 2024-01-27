@@ -137,7 +137,8 @@ class Dog(Model):
     string_name = "Dog"
     name = TextField(null=True, blank=True)
     owners = TextField(null=True, blank=True)
-    notes = TextField(null=True, blank=True)
+    owners_number = TextField(null=True, blank=True)
+    notes = RichTextField(null=True, blank=True)
     approved = CharField(default="Yes", choices=[("Yes", "Yes"), ("No", "No"), ("Limited", "Limited")])
     image = ImageField(null=True, blank=True, upload_to="images/")
     owners_link = ForeignKey(Note, null=True, on_delete=SET_NULL, blank=True)
@@ -161,6 +162,10 @@ class Dog(Model):
         bookings = Booking.objects.filter(dog=self).filter(start_date__gte=today).order_by('start_date')
         if bookings: return bookings[0].start_date
         return today + timedelta(days=360)
+
+    def mobile(self):
+        if not self.owners_number: return None
+        return "+61" + self.owners_number[1:]
 
 
 class Booking(Model):

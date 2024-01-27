@@ -133,7 +133,8 @@ def shopping_reorder(request, dir, id):
 
 def dogs(request):
     if not request.user.is_authenticated: return redirect("login")
-    form = None
+    form = DogForm()
+
     if request.method == 'POST':
         form = DogForm(request.POST, request.FILES)
         if form.is_valid(): form.save()
@@ -155,12 +156,14 @@ def dog_edit(request, id):
         if form.is_valid(): form.save()
         return redirect("dogs")
 
+    form = DogForm(instance=dog)
     objects = Dog.objects.all()
     objects = sorted(objects, key=lambda d: d.next_booking())
 
     count = len(objects)
     options = ["Yes", "No", "Limited"]
-    context = {'objects': objects, 'title': "Dogs", 'count': count, "dog": dog, "edit_mode": True,  'people': people(), 'options':options}
+    context = {'objects': objects, 'title': "Dogs", 'count': count, "dog": dog, "edit_mode": True,  'people': people(),
+               'options':options, 'form':form}
     return render(request, 'dog.html', context)
 
 def dog_diary(request):

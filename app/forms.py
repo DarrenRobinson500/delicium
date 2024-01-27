@@ -19,10 +19,14 @@ class EventForm(ModelForm):
 class DogForm(ModelForm):
     class Meta:
         model = Dog
-        fields = ['name', 'owners', 'owners_link', 'notes', 'image', "approved"]
+        fields = ['name', 'owners', 'owners_link', "owners_number", 'notes', 'image', "approved"]
         widgets = {
             'owners_link': Select(attrs={'class': 'form-control'}),
+            'name': TextInput(attrs={'class':'form-control', 'placeholder': "Name"}),
+            'owners': TextInput(attrs={'class':'form-control', 'placeholder': "Owners"}),
+            'owners_number': TextInput(attrs={'class':'form-control', 'placeholder': "Mobile"}),
             'approved': Select(attrs={'class': 'form-control'}),
+            "image": FileInput(attrs={"class": "form-control", "placeholder": ""}),
         }
 
 class BookingForm(ModelForm):

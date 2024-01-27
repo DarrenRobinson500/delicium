@@ -1,6 +1,17 @@
 {% extends 'base.html'%}
 {% block content %}
 
+
+    {% if edit_mode %}
+        <h1>Edit Mode</h1><br>
+        <form action="{% url 'dog_edit' dog.id %}" class="form-inline my-2 my-lg-0" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.media }}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-yak">{% if edit_mode %} Update Details {% else %} Add dog {% endif %}</button>
+         </form>
+    {% endif %}
+
     <h1>{{ title }}</h1><br>
     <a href="{% url 'dog_diary' %}">Diary</a>
 
@@ -19,17 +30,20 @@
      <tbody>
         {% for item in objects %}
         <tr>
-            <td><a href="{% url 'dog_edit' item.id %}">{{ item.name }}</a>{% if item.nights > 0 %}({{ item.nights }}){% endif %}</td>
+            <td><a href="{% url 'dog_edit' item.id %}">{{ item.name }}</a>{% if item.nights > 0 %} ({{ item.nights }}){% endif %}</td>
             <td>
                 {% if item.owners_link %}
                     <a href="{% url 'note' item.owners_link.id %}">{{ item.owners_link.heading }}</a>
                 {% else %}
                     {{ item.owners }}
                 {% endif %}
+                {% if item.owners_number %}
+                    <br><a href="tel:+{{ item.mobile }}">{{ item.owners_number }}</a> [{{ item.mobile }}]
+                {% endif %}
             </td>
             <td>
-                {% if item.notes %} {{ item.notes }}<br> {% endif %}
-                Approved: {{ item.approved }}
+                {% if item.notes %} {{ item.notes | safe}}<br> {% endif %}
+                {% if item.approved != "Yes" %}Approved: {{ item.approved }}{% endif %}
 
             </td>
                     {% if show_images %}
@@ -51,61 +65,15 @@
     </table>
 
 
-    {% if edit_mode %}
-        <h1>Edit Mode</h1><br>
-        <form action="{% url 'dog_edit' dog.id %}" class="form-inline my-2 my-lg-0" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-    {% else %}
-        <h1>Add Dog</h1><br>
+    {% if not edit_mode %}
+        <h1>Add a Dog</h1><br>
         <form action="{% url 'dogs' %}" class="form-inline my-2 my-lg-0" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+            {% csrf_token %}
+            {{ form.media }}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-yak">{% if edit_mode %} Update Details {% else %} Add dog {% endif %}</button>
+         </form>
      {% endif %}
-        <table class="table-primary">
-            <tbody>
-                <td>
-                    <label class="form-label">Dog's name</label>
-                    <input type="text" name="name" class="form-control" style="min-width:200px"
-                    {% if edit_mode %} value = "{{ dog.name }}" placeholder = "{{ dog.name }}" {% endif %}
-                    >
-                </td>
-                <td class="p-3">
-                    <label class="form-label">Owners</label>
-                    <input type="text" name="owners" class="form-control" style="min-width:200px" {% if edit_mode %} value = "{{ dog.owners }}" placeholder = "{{ dog.owners }}" {% endif %}>
-                    <select name="owners_link" class="form-control" id="id_owners_link">
-                         <option value="" selected>[Select]</option>
-                        {% for person in people %}
-                         <option value="{{ person.id }}">{{ person.heading }}</option>
-                        {% endfor %}
-                    </select>
-
-                </td>
-                <td class="p-3">
-                    <label class="form-label">Notes</label>
-                    <input type="text" name="notes" class="form-control" style="min-width:200px"
-                    {% if edit_mode %} {% if dog.notes %} value = "{{ dog.notes }}" placeholder = "{{ dog.notes }}" {% endif %} {% endif %}>
-
-                    <select name="approved" class="form-control" id="id_approved">
-                        {% for option in options %}
-                         <option value="{{ option }}">{{ option }}</option>
-                        {% endfor %}
-                    </select>
-
-
-                </td>
-                <td class="p-3">
-
-                    <label class="form-label">Picture</label>
-                    <input type="file" name="image" class="form-control" style="min-width:200px" accept="image/*">
-                </td>
-                <td>
-                    <p></p>
-                    <button type="submit" class="btn btn-yak">{% if edit_mode %} Update Details {% else %} Add dog {% endif %}</button>
-                </td>
-            </tbody>
-
-
-        </table>
-     </form>
             <br><br>
             <br><br>
 
