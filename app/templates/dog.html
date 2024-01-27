@@ -10,7 +10,9 @@
           <th scope="col">Dogs</th>
           <th scope="col">Owners</th>
           <th scope="col">Notes</th>
-          <th scope="col">Image</th>
+            {% if show_images %}
+              <th scope="col">Image</th>
+            {% endif %}
           <th style="min-width: 250px;">Bookings</th>
         </tr>
       </thead>
@@ -28,12 +30,15 @@
             <td>
                 {% if item.notes %} {{ item.notes }}<br> {% endif %}
                 Approved: {{ item.approved }}
+
             </td>
-            <td>
-                {% if show_images and item.image %}
-                <img src="{{ item.image.url }}" height="120"/>
-                {% endif %}
-            </td>
+                    {% if show_images %}
+                    <td>
+                        {% if item.image %}
+                        <img src="{{ item.image.url }}" height="120"/>
+                        {% endif %}
+                    </td>
+                    {% endif %}
             <td>
                 {% for booking in item.bookings %}
                 {{ booking.short_name }}<br>
