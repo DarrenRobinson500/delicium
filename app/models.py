@@ -463,7 +463,8 @@ class TennisSet(Model):
 
     def score_string(self):
         games_A, games_B = self.score()
-        return f"<b>Set {self.set_no}: </b>{games_A} - {games_B}"
+        return f"{games_A}:{games_B}"
+        # return f"<b>Set {self.set_no}: </b>{games_A} - {games_B}"
 
     def game_scores(self):
         games = TennisGame.objects.filter(set=self).order_by('game_no')
