@@ -416,6 +416,9 @@ class TennisMatch(Model):
     def __str__(self):
         return f"{self.player_A} v {self.player_B} {self.match_date}"
 
+    def play_A(self): return self.player_A[0:3]
+    def play_B(self): return self.player_B[0:3]
+
     def game_score(self):
         if self.score_A == 3 and self.score_B == 3: return "Deuce"
         scores = [0, 15, 30, 40, "Ad"]
