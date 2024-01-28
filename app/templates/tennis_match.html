@@ -1,24 +1,32 @@
-{% extends 'base.html'%}
+{% extends 'base_no_nav.html'%}
 {% block content %}
-<h1>Tennis</h1>
+
+<h1 id="top">Tennis</h1>
     <div class="row">
-        <div class="col-sm-4" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white; text-align: center">
+        <div class="col-sm-3" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white; text-align: center">
             <a class="btn btn-yak" href="{% url 'tennis_score' set.id 1 0 %}">{{ match.player_A }}</a><br><br>
             <a class="btn btn-yak" href="{% url 'tennis_score' set.id -1 0 %}">-</a>
         </div>
-        <div class="col-sm-4" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white; text-align: center">
-            <h1>{{ match.game_score }}</h1><br>
+        <div class="col-sm-6" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white; text-align: center">
+            <h1>{{ match.game_score }}</h1>
+            <div class="row">
             {% for set in match.sets %}
-                {{ set.score | safe }}<br><br>
-                <b>Game scores</b><br>
-                {{ set.game_scores | safe }}<br>
+                <div class="col-sm-3" style="background-color: #ffe5ea; padding: 10px; border: 4px solid pink; text-align: center">
+                    <h3>{{ set.score_string | safe }}</h3>
+                    <b>Game scores</b><br>
+                    {{ set.game_scores | safe }}<br>
+                </div>
             {% endfor %}
+            </div>
         </div>
-        <div class="col-sm-4" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white; text-align: center">
+        <div class="col-sm-3" style="background-color: #ffe5ea; padding: 10px; border: 4px solid white; text-align: center">
             <a class="btn btn-yak" href="{% url 'tennis_score' set.id 0 1 %}">{{ match.player_B }}</a><br><br>
             <a class="btn btn-yak" href="{% url 'tennis_score' set.id 0 -1 %}">-</a>
         </div>
     </div>
+
+<h1>Back</h1>
+<a class="btn btn-yak" href="{% url 'tennis' %}">Back</a><br><br>
 
 
 {% endblock %}

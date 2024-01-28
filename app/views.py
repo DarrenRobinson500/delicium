@@ -539,20 +539,25 @@ def tides(request):
     return render(request, 'tides.html', context)
 
 def tennis(request):
-    player_A = get_player("Michael")
-    player_B = get_player("Jacob")
-
-    context = {"player_A": player_A, "player_B": player_B}
+    form = TennisForm
+    matches = TennisMatch.objects.all().order_by('-id')
+    context = {"matches": matches, "form": form}
     return render(request, 'tennis.html', context)
 
-def tennis_match(request):
-    player_A = get_player("Michael")
-    player_B = get_player("Jacob")
-    match = TennisMatch(player_A=player_A, player_B=player_B)
-    match.save()
-    set = TennisSet(match=match, set_no=1)
-    set.save()
+def tennis_match_start(request):
+    match, set = None, None
+    if request.method == 'POST':
+        form = TennisForm(request.POST)
+        if form.is_valid():
+            match = form.save()
+            set = TennisSet(match=match, set_no=1)
+            set.save()
+    context = {"match": match, "set": set}
+    return render(request, 'tennis_match.html', context)
 
+def tennis_match(request, id):
+    match = TennisMatch.objects.get(id=id)
+    set = match.current_set()
     context = {"match": match, "set": set}
     return render(request, 'tennis_match.html', context)
 
@@ -563,6 +568,10 @@ def save_game(set):
     match.score_A = 0
     match.score_B = 0
     match.save()
+    if set.is_complete():
+        set = TennisSet(match=match, set_no=match.next_set_number())
+        set.save()
+    return set
 
 def tennis_score(request, id, a, b):
     a, b = int(a), int(b)
@@ -572,8 +581,8 @@ def tennis_score(request, id, a, b):
     match.score_B += b
     match.score_A = min(max(match.score_A, 0), 5)
     match.score_B = min(max(match.score_B, 0), 5)
-    if match.score_A >= 4 and match.score_A - match.score_B > 1: save_game(set)
-    if match.score_B >= 4 and match.score_B - match.score_A > 1: save_game(set)
+    if match.score_A >= 4 and match.score_A - match.score_B > 1: set = save_game(set)
+    if match.score_B >= 4 and match.score_B - match.score_A > 1: set = save_game(set)
     if match.score_A == 4 and match.score_B == 4:
         match.score_A = 3
         match.score_B = 3

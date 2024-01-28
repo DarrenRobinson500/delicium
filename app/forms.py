@@ -29,6 +29,15 @@ class DogForm(ModelForm):
             "image": FileInput(attrs={"class": "form-control", "placeholder": ""}),
         }
 
+class TennisForm(ModelForm):
+    class Meta:
+        model = TennisMatch
+        fields = ['player_A', 'player_B']
+        widgets = {
+            'player_A': TextInput(attrs={'class': 'form-control', 'placeholder': "Name"}),
+            'player_B': TextInput(attrs={'class': 'form-control', 'placeholder': "Name"}),
+        }
+
 class BookingForm(ModelForm):
     class Meta:
         model = Booking

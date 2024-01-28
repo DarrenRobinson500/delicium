@@ -402,45 +402,76 @@ class Wordle(Model):
         else:
             return "blue"
 
-
-class TennisPlayer(Model):
-    name = CharField(max_length=30, null=True)
-    def __str__(self):
-        return self.name
-
 class TennisMatch(Model):
-    player_A = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_A")
-    player_B = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_B")
+    # player_A = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_A")
+    # player_B = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_B")
+    player_A = CharField(max_length=30, null=True)
+    player_B = CharField(max_length=30, null=True)
     score_A = IntegerField(null=True, blank=True, default=0)
     score_B = IntegerField(null=True, blank=True, default=0)
 
-    game_date = DateField(null=True, blank=False)
+    match_date = DateField(auto_now_add=True, null=True, blank=False)
     name = CharField(max_length=30, null=True)
+
     def __str__(self):
-        return self.name
+        return f"{self.player_A} v {self.player_B} {self.match_date}"
+
     def game_score(self):
         if self.score_A == 3 and self.score_B == 3: return "Deuce"
         scores = [0, 15, 30, 40, "Ad"]
         return f"{scores[min(self.score_A, 4)]} - {scores[min(self.score_B, 4)]}"
+
+    def set_score(self):
+        sets = TennisSet.objects.filter(match=self)
+        score_string = ""
+        for set in sets:
+            score_A, score_B = set.score()
+            score_string += f"{score_A}-{score_B} "
+        return score_string
+
     def sets(self):
         return TennisSet.objects.filter(match=self)
+
+    def next_set_number(self):
+        sets = TennisSet.objects.filter(match=self).order_by('-set_no')
+        if len(sets) == 0: return 1
+        return sets[0].set_no + 1
+
+    def current_set(self):
+        sets = TennisSet.objects.filter(match=self).order_by('-set_no')
+        if len(sets) == 0: return None
+        return sets[0]
 
 class TennisSet(Model):
     match = ForeignKey(TennisMatch, null=True, blank=True, on_delete=CASCADE)
     set_no = IntegerField(null=True, blank=True)
+
     def score(self):
         games = TennisGame.objects.filter(set=self)
-        sets_A, sets_B = 0, 0
+        games_A, games_B = 0, 0
         for game in games:
-            if game.score_A > game.score_B: sets_A += 1
-            if game.score_B > game.score_A: sets_B += 1
-        return f"<b>Set {self.set_no}: </b>{sets_A} - {sets_B}"
+            if game.score_A > game.score_B: games_A += 1
+            if game.score_B > game.score_A: games_B += 1
+        return games_A, games_B
+
+    def is_complete(self):
+        games_A, games_B = self.score()
+        if games_A == 6 and games_A > games_B + 2: return True
+        if games_B == 6 and games_B > games_A + 2: return True
+        if games_A == 7 or games_B == 7: return True
+        return False
+
+    def score_string(self):
+        games_A, games_B = self.score()
+        return f"<b>Set {self.set_no}: </b>{games_A} - {games_B}"
+
     def game_scores(self):
         games = TennisGame.objects.filter(set=self).order_by('game_no')
         games_string = ""
         for game in games:
-            games_string += f"<b>Game {game.game_no}:</b> {game.score()}<br>"
+            games_string += f"{game.score()}<br>"
         return games_string
+
     def next_game_number(self):
         games = TennisGame.objects.filter(set=self).order_by('-game_no')
         if len(games) == 0: return 1
@@ -456,10 +487,6 @@ class TennisGame(Model):
         if self.score_A == 3 and self.score_B == 3: return "Deuce"
         scores = [0, 15, 30, 40, "W"]
         return f"{scores[min(self.score_A, 4)]} - {scores[min(self.score_B, 4)]}"
-
-def get_player(name):
-    player = TennisPlayer.objects.filter(name=name).first()
-    return player
 
 def min_days_to_birthday():
     birthday_objects = Birthday.objects.all()
@@ -482,5 +509,5 @@ def get_birthday_reminders():
 
 all_models = \
     [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement,
-     New_Tide, Tide_Date, Weather, Wordle, TennisPlayer, General]
+     New_Tide, Tide_Date, Weather, Wordle, TennisMatch, General]
 

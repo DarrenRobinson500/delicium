@@ -71,7 +71,8 @@ urlpatterns = [
     path('timer/<id>', timer, name='timer'),
     path('tides', tides, name='tides'),
     path('tennis', tennis, name='tennis'),
-    path('tennis_match', tennis_match, name='tennis_match'),
+    path('tennis_match_start', tennis_match_start, name='tennis_match_start'),
+    path('tennis_match/<id>', tennis_match, name='tennis_match'),
     path('tennis_score/<id>/<a>/<b>', tennis_score, name='tennis_score'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

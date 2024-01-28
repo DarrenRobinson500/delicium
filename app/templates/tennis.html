@@ -2,6 +2,16 @@
 {% block content %}
 <h1>Tennis</h1>
 
-    <a class="btn btn-yak" href="{% url 'tennis_match' %}">Start</a>
+        <form action="{% url 'tennis_match_start' %}" class="form-inline my-2 my-lg-0" method="POST">
+            {% csrf_token %}
+            {{ form.media }}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-yak">Start</button>
+         </form>
+
+<h2>Prior Matches</h2>
+    {% for match in matches %}
+    <a href="{% url 'tennis_match' match.id %}">{{ match }}</a>  {{ match.set_score }}<br><br>
+    {% endfor %}
 
 {% endblock %}
