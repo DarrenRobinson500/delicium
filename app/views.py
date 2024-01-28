@@ -589,3 +589,10 @@ def tennis_score(request, id, a, b):
     match.save()
     context = {"match": match, "set": set}
     return render(request, 'tennis_match.html', context)
+
+def tennis_delete_game(request, id):
+    set = TennisSet.objects.get(id=id)
+    match = set.match
+    set.delete_last_game()
+    context = {"match": match, "set": set}
+    return render(request, 'tennis_match.html', context)

@@ -74,5 +74,6 @@ urlpatterns = [
     path('tennis_match_start', tennis_match_start, name='tennis_match_start'),
     path('tennis_match/<id>', tennis_match, name='tennis_match'),
     path('tennis_score/<id>/<a>/<b>', tennis_score, name='tennis_score'),
+    path('tennis_delete_game/<id>', tennis_delete_game, name='tennis_delete_game'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

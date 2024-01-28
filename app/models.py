@@ -481,6 +481,9 @@ class TennisSet(Model):
         if len(games) == 0: return 1
         return games[0].game_no + 1
 
+    def delete_last_game(self):
+        games = TennisGame.objects.filter(set=self).order_by('-game_no')
+        if len(games) > 0: games[0].delete()
 
 class TennisGame(Model):
     set = ForeignKey(TennisSet, null=True, blank=True, on_delete=CASCADE)
