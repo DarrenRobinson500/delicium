@@ -457,6 +457,14 @@ class TennisSet(Model):
             if game.score_B > game.score_A: games_B += 1
         return games_A, games_B
 
+    def points(self):
+        games = TennisGame.objects.filter(set=self)
+        points_A, points_B = 0, 0
+        for game in games:
+            points_A += game.score_A
+            points_B += game.score_B
+        return points_A, points_B
+
     def is_complete(self):
         games_A, games_B = self.score()
         if games_A == 6 and games_A > games_B + 2: return True
