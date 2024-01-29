@@ -213,11 +213,17 @@ def dog_diary(request):
     )
     chart_pie= pie.to_html()
 
-    context = {'dog_diary': dog_diary, "chart": chart, "chart_pie": chart_pie, }
+    general = General.objects.get(name="main")
+    durations = [30, 60, 90, 120, 150, 180, 360]
+
+    context = {'dog_diary': dog_diary, "chart": chart, "chart_pie": chart_pie, 'durations': durations, 'general': general}
     return render(request, 'dog_diary.html', context)
 
-
-
+def dog_duration(request, dur):
+    general = General.objects.get(name="main")
+    general.dog_diary_days = dur
+    general.save()
+    return redirect('dog_diary')
 
 def booking(request, id):
     if not request.user.is_authenticated: return redirect("login")
@@ -415,9 +421,12 @@ def events(request):
     tide_check = Tide_Date.objects.filter(date=end_date).first()
     if tide_check is None or len(tide_check.tides()) == 0: get_tides()
 
+    # Routine
+    ongoing_items = Note.objects.filter(frequency__isnull=False)
+    for item in ongoing_items: item.update_date()
+
     tide_dates = Tide_Date.objects.filter(date__lte=end_date).filter(date__gte=today).order_by('date')
     context = {'tide_dates': tide_dates, 'title': "Events"}
-
 
     # context = {'objects': events_and_bookings, "count": count}
     return render(request, 'events.html', context)
@@ -562,8 +571,9 @@ def tennis_match(request, id):
     return render(request, 'tennis_match.html', context)
 
 def save_game(set):
+    print("Save game")
     match = set.match
-    game = TennisGame(set=set, score_A=match.score_A, score_B=match.score_B, game_no=set.next_game_number())
+    game = TennisGame(set=set, score_A=match.score_A, score_B=match.score_B, game_no=match.next_game_number())
     game.save()
     match.score_A = 0
     match.score_B = 0

@@ -61,13 +61,17 @@ def add_wordle(request, word):
         messages.success(request, f"'{existing.word.upper()}' already exists as today's word")
         return redirect("wordle")
 
-    object = Wordle.objects.filter(word=word).first()
-    if object:
-        object.date = today
-        object.save()
+    todays_wordle = Wordle.objects.filter(word=word).first()
+    if todays_wordle:
+        if todays_wordle.guess_2 is None: solve_wordle(todays_wordle)
+        todays_wordle.date = today
+        todays_wordle.save()
         messages.success(request, f"'{word}' recorded as today's word")
-
-
+        affected_wordles = Wordle.objects.filter(guess_2=todays_wordle.guess_2)
+        for wordle in affected_wordles:
+            print("Affected word:", wordle)
+            wordle.last_reviewed = None
+            wordle.save()
     else:
         messages.success(request, f"'{word}' wasn't found in database")
     return redirect("wordle_test")
@@ -92,7 +96,7 @@ def get_fav_word(wordles):
         wordles = Wordle.objects.filter(Q(word="arose") | Q(word="later") | Q(word="alert") | Q(word="stare") | Q(word="arise"))
 
     highest_score = 0
-    fav_word = None
+    fav_word = wordles[0]
     for wordle in wordles:
         score = 0
         for letter in set(wordle.word): score += counter[letter]
@@ -123,6 +127,7 @@ def get_valid_words(input_array):
 def solve_wordle(wordle):
     input_array.clear()
     words = get_valid_words(input_array)
+    # print("Solve wordle words:", words)
     counter, fav_word = get_fav_word(words)
     # wordle.save_guess(fav_word, 1)
     count = 1
@@ -155,56 +160,28 @@ def get_max_attempts():
 def wordle_test(request, id=None):
     if not request.user.is_authenticated: return redirect("login")
 
-    # all_wordles_done = False
-    # for x in range(5):
-    #     input_array.clear()
-    #     wordle = Wordle.objects.filter(date__isnull=True).filter(attempts__isnull=True).order_by('?').first()
-    #     if wordle:
-    #         solve_wordle(wordle)
-    #         print(f"Loop: {x + 1} - {wordle.upper()} ({wordle.attempts})")
-    #     else:
-    #         all_wordles_done = True
-
-    # if all_wordles_done:
-    # max_attempts = get_max_attempts()
-    # wordles = Wordle.objects.filter(attempts=max_attempts).order_by('?')
+    # Solve a number of wordles that don't have a date
     wordles_to_do = General.objects.get(name="main").wordles_to_do
-
-    wordles = Wordle.objects.filter(date__isnull=True).order_by('-last_reviewed')[0:wordles_to_do]
+    wordles = Wordle.objects.filter(last_reviewed__isnull=True, date__isnull=True).order_by('-last_reviewed')[0:wordles_to_do]
     for wordle in wordles:
-        print(f"Redoing '{wordle.word.upper()}'")
-        solve_wordle(wordle)
+        if wordle:
+            print(f"Redoing '{wordle.word.upper()}'")
+            solve_wordle(wordle)
 
-    todays_word = Wordle.objects.filter(date__isnull=False).order_by('-date')[0].word
-    print("Today's word:", todays_word)
-    # todays_word = "pouty"
-    affected_1 = Wordle.objects.filter(guess_1=todays_word)
-    affected_2 = Wordle.objects.filter(guess_2=todays_word)
-    affected_3 = Wordle.objects.filter(guess_3=todays_word)
-    affected_4 = Wordle.objects.filter(guess_4=todays_word)
-    affected_5 = Wordle.objects.filter(guess_5=todays_word)
-    affected_6 = Wordle.objects.filter(guess_6=todays_word)
-    affected = affected_1 | affected_2 | affected_3 | affected_4 | affected_5 | affected_6
-    # print(affected)
-    for wordle in affected:
-        if wordle.last_reviewed != date.today():
-            wordle.last_reviewed = None
-            wordle.save()
-            # print(f"Redoing '{wordle.word.upper()}'")
-            # solve_wordle(wordle)
-        # else:
-            # print(f"Not redoing '{wordle.word.upper()}'")
-
-
-    words = Wordle.objects.filter(attempts__isnull=False).order_by('word')
-
+    # Solve the particular wordle requested
     if id:
         wordle = Wordle.objects.get(id=id)
         solve_wordle(wordle)
 
+    wordles = Wordle.objects.filter(last_reviewed__isnull=False).order_by('word')
+
     # Categorisation of attempts
     attempts_range = []
-    categories = Wordle.objects.values('attempts').annotate(count=Count('attempts'))
+    # categories = Wordle.objects.values('attempts').annotate(count=Count('attempts'))
+    categories = Wordle.objects.filter(date__isnull=True).values('attempts').annotate(count=Count('attempts'))
+
+    # print("\nCategories:", categories)
+    # print("\nCategories_2:", categories_2)
     no, total = 0, 0
     for category in categories:
         if category['attempts']:
@@ -212,7 +189,10 @@ def wordle_test(request, id=None):
             no += category['count'] * category['attempts']
             total += category['count']
     attempts_range = sorted(attempts_range, key=lambda x: x[0])
+    # attempts_range = ((2, 2),(3, 2),(4, 2),(5, 2),(6, 2),(7, 2),)
     score = round(no/total, 2)
+
+
 
     # Categorisation of second word
     categories_second_word = Wordle.objects.values('guess_2').annotate(count=Count('guess_2'))
@@ -221,17 +201,17 @@ def wordle_test(request, id=None):
         second_word_array.append((category['guess_2'], category['count']))
     second_word_array = sorted(second_word_array, key=lambda x: (x[1] is None, x[1]), reverse=True)[0: 10]
 
-    # my_list.sort(key=lambda x: (x is None, x))
-
-
-
-
     remaining_words = Wordle.objects.filter(date__isnull=True)
     remaining_words_not_tested = remaining_words.filter(last_reviewed__isnull=True)
     message = f"Proportion of words tested: {int((1-len(remaining_words_not_tested)/len(remaining_words))*100)}%"
+    message2 = f"Remaining words: {len(remaining_words)}"
 
-    context = {'word': wordle.word.upper(), 'input_array': input_array, 'words': words, 'attempts_range': attempts_range,
-               'remaining_words': remaining_words, 'score': score, 'second_word_array': second_word_array, "message": message,
+    todays_word = Wordle.objects.filter(date__isnull=False).order_by('-date')
+    # print(attempts_range)
+
+    context = {'word': wordle.word.upper(), 'input_array': input_array, 'words': wordles, 'attempts_range': attempts_range,
+               'remaining_words': remaining_words, 'score': score, 'second_word_array': second_word_array,
+               "message": message, "message2": message2,
                "todays": todays_word}
     return render(request, "wordle_test.html", context)
 

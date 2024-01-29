@@ -1,8 +1,15 @@
 {% extends 'base.html'%}
 {% block content %}
 <h1>Dog Diary</h1>
-    {{ chart | safe }}
-    {{ chart_pie | safe }}
+
+{% for duration in durations %}
+    <a class="btn btn-yak" href="{% url 'dog_duration' duration %}"
+       {% if general.dog_diary_days == duration %}style="border: 2px solid black"{% endif %}
+    >{{ duration }} days</a>
+
+
+{% endfor %} <br><br>
+
     <table class="table">
         <thead class="table-light">
             <th>Day</th>
@@ -22,6 +29,8 @@
         </tr>
         {% endfor %}
     </table>
+    {{ chart | safe }}
+    {{ chart_pie | safe }}
 
 
 {% endblock %}

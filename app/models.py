@@ -76,12 +76,14 @@ class Diary(Model):
     def __str__(self): return "[" + str(self.date) + "] " + self.text[0:50]
 
 class Note(Model):
+    choices = [("Weekly", "Weekly"), ("Fortnightly", "Fortnightly"), ("Monthly", "Monthly"), ]
     string_name = "Note"
     heading = TextField(null=True, blank=True)
     text = RichTextField(null=True, blank=True)
     category = ForeignKey(Category, null=True, blank=True, on_delete=SET_NULL)
     parent = ForeignKey('self', null=True, blank=True, on_delete=CASCADE)
-    date = DateField(auto_now_add=True, null=True, blank=True)
+    create_date = DateField(auto_now_add=True, null=True, blank=True)
+    frequency = CharField(null=True, blank=True, choices=choices)
     note_date = DateField(null=True, blank=False)
     order = IntegerField(null=True, blank=True)
     def __str__(self):
@@ -95,6 +97,20 @@ class Note(Model):
     def parent_text(self):
         if self.parent: return f"[{self.parent}]"
         return ""
+
+    def update_date(self):
+        print("Update_date:", self, self.frequency)
+        if not self.frequency: return
+        today = date.today()
+        print("Today:", today)
+        if self.frequency == "Weekly": freq = timedelta(days=7)
+        if self.frequency == "Fortnightly": freq = timedelta(days=14)
+        if self.frequency == "Monthly": freq = timedelta(months=1)
+        print("Update_date", self, freq, self.note_date, today, self.note_date < today)
+        while self.note_date < today:
+            self.note_date += freq
+            print("Updating date", self, self.note_date)
+        self.save()
 
     def chain(self):
         chain = str(self.order) + "."
@@ -328,7 +344,10 @@ class Tide_Date(Model):
     def __str__(self): return f"{self.date}"
     def tides(self): return New_Tide.objects.filter(date=self).filter(type="low").order_by("time")
     def max_temp(self): return MaxTemp.objects.filter(date=self.date).first()
-    def notes(self): return Note.objects.filter(note_date=self.date)
+    def notes(self):
+        result = Note.objects.filter(note_date=self.date)
+        print(result)
+        return result
     def weather(self): return Weather.objects.filter(date=self).order_by("time")
     def events(self): return Event.objects.filter(date=self.date)
     def birthdays(self): return Birthday.objects.filter(date__month=self.date.month).filter(date__day=self.date.day)
@@ -424,6 +443,45 @@ class TennisMatch(Model):
         scores = [0, 15, 30, 40, "Ad"]
         return f"{scores[min(self.score_A, 4)]} - {scores[min(self.score_B, 4)]}"
 
+    def points(self):
+        sets = TennisSet.objects.filter(match=self)
+        points_A, points_B = self.score_A, self.score_B
+        for set in sets:
+            a, b = set.points()
+            points_A += a
+            points_B += b
+        return points_A, points_B
+
+    def serve_perc(self):
+        sets = TennisSet.objects.filter(match=self)
+        points_A_serv, points_A_rec, points_B_serv, points_B_rec = 0,0,0,0
+        for set in sets:
+            for game in set.games():
+                if game.game_no % 2 == 0:
+                    points_A_serv += game.score_A
+                    points_B_rec += game.score_B
+                else:
+                    points_A_rec += game.score_A
+                    points_B_serv += game.score_B
+        percent_A = round(points_A_serv / (points_A_serv + points_B_rec), 2)
+        percent_B = round(points_B_serv / (points_B_serv + points_A_rec), 2)
+        print("Serv Per A:", percent_A)
+        return percent_A, percent_B
+
+    def serv_per_A(self): return f"{self.serve_perc()[0] * 100}%"
+    def serv_per_B(self): return f"{self.serve_perc()[1] * 100}%"
+
+    def next_game_number(self):
+        max_game = 0
+        sets = TennisSet.objects.filter(match=self)
+        for set in sets:
+            for game in TennisGame.objects.filter(set=set):
+                if game.game_no > max_game: max_game = game.game_no
+        return max_game + 1
+
+    def server(self):
+        return self.next_game_number() % 2
+
     def set_score(self):
         sets = TennisSet.objects.filter(match=self)
         score_string = ""
@@ -448,6 +506,9 @@ class TennisMatch(Model):
 class TennisSet(Model):
     match = ForeignKey(TennisMatch, null=True, blank=True, on_delete=CASCADE)
     set_no = IntegerField(null=True, blank=True)
+
+    def games(self):
+        return TennisGame.objects.filter(set=self)
 
     def score(self):
         games = TennisGame.objects.filter(set=self)
@@ -481,7 +542,7 @@ class TennisSet(Model):
         games = TennisGame.objects.filter(set=self).order_by('game_no')
         games_string = ""
         for game in games:
-            games_string += f"{game.score()}<br>"
+            games_string += f"{game.score()} {game.game_no}<br>"
         return games_string
 
     def next_game_number(self):
@@ -498,6 +559,13 @@ class TennisGame(Model):
     game_no = IntegerField(null=True, blank=True)
     score_A = IntegerField(null=True, blank=True)
     score_B = IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        try:
+            return f"{self.set.match} {self.set} {self.game_no}"
+        except:
+            return "Game Failure"
+
     def score(self):
         if self.score_A == 3 and self.score_B == 3: return "Deuce"
         scores = [0, 15, 30, 40, "W"]
@@ -524,5 +592,5 @@ def get_birthday_reminders():
 
 all_models = \
     [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement,
-     New_Tide, Tide_Date, Weather, Wordle, TennisMatch, General]
+     New_Tide, Tide_Date, Weather, Wordle, TennisMatch, TennisGame, General]
 
