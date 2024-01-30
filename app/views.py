@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from collections import namedtuple
 from django.http import HttpResponse
 
 import pandas as pd
@@ -567,7 +566,8 @@ def tennis_match_start(request):
 def tennis_match(request, id):
     match = TennisMatch.objects.get(id=id)
     set = match.current_set()
-    context = {"match": match, "set": set}
+    points = match.points()
+    context = {"match": match, "set": set, "points": points}
     return render(request, 'tennis_match.html', context)
 
 def save_game(set):
@@ -597,8 +597,7 @@ def tennis_score(request, id, a, b):
         match.score_A = 3
         match.score_B = 3
     match.save()
-    context = {"match": match, "set": set}
-    return render(request, 'tennis_match.html', context)
+    return redirect(f'/tennis_match/{match.id}')
 
 def tennis_delete_game(request, id):
     set = TennisSet.objects.get(id=id)

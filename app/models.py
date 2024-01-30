@@ -1,8 +1,9 @@
-from django.db import models
 from django.db.models import *
 from datetime import datetime, date, timedelta, time
 from django.db.models.functions import ExtractMonth, ExtractDay
 from ckeditor.fields import RichTextField
+from collections import namedtuple
+from .prob import *
 
 class General(Model):
     name = CharField(max_length=30, default="main")
@@ -421,6 +422,8 @@ class Wordle(Model):
         else:
             return "blue"
 
+Score_Tuple = namedtuple('Score_Tuple', ["points_A", "points_A_serv", "points_A_rec", "percent_A", "game_prob_A", "points_B", "points_B_serv", "points_B_rec", "percent_B", "game_prob_B"])
+
 class TennisMatch(Model):
     # player_A = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_A")
     # player_B = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_B")
@@ -443,33 +446,58 @@ class TennisMatch(Model):
         scores = [0, 15, 30, 40, "Ad"]
         return f"{scores[min(self.score_A, 4)]} - {scores[min(self.score_B, 4)]}"
 
+    # def points(self):
+    #     sets = TennisSet.objects.filter(match=self)
+    #     points_A, points_B = self.score_A, self.score_B
+    #     for set in sets:
+    #         a, b = set.points()
+    #         points_A += a
+    #         points_B += b
+    #     return points_A, points_B
+
     def points(self):
         sets = TennisSet.objects.filter(match=self)
-        points_A, points_B = self.score_A, self.score_B
-        for set in sets:
-            a, b = set.points()
-            points_A += a
-            points_B += b
-        return points_A, points_B
+        print("Server:", self.server())
+        if self.server() == 1:
+            points_A_serv, points_A_rec, points_B_serv, points_B_rec = self.score_A, 0, 0, self.score_B
+        else:
+            points_A_serv, points_A_rec, points_B_serv, points_B_rec = 0, self.score_A, self.score_B, 0
 
-    def serve_perc(self):
-        sets = TennisSet.objects.filter(match=self)
-        points_A_serv, points_A_rec, points_B_serv, points_B_rec = 0,0,0,0
         for set in sets:
             for game in set.games():
-                if game.game_no % 2 == 0:
+                if game.game_no % 2 == 1:
                     points_A_serv += game.score_A
                     points_B_rec += game.score_B
                 else:
                     points_A_rec += game.score_A
                     points_B_serv += game.score_B
-        percent_A = round(points_A_serv / (points_A_serv + points_B_rec), 2)
-        percent_B = round(points_B_serv / (points_B_serv + points_A_rec), 2)
-        print("Serv Per A:", percent_A)
-        return percent_A, percent_B
+        if points_A_serv + points_B_rec > 0: percent_A = round(points_A_serv / (points_A_serv + points_B_rec), 2)
+        else: percent_A = 0
+        if points_B_serv + points_A_rec > 0: percent_B = round(points_B_serv / (points_B_serv + points_A_rec), 2)
+        else: percent_B = 0
 
-    def serv_per_A(self): return f"{self.serve_perc()[0] * 100}%"
-    def serv_per_B(self): return f"{self.serve_perc()[1] * 100}%"
+        if self.server() == 1:
+            game_prob_A = game_prob(self.score_A, self.score_B, percent_A)
+            game_prob_B = 0
+        else:
+            game_prob_A = 0
+            game_prob_B = game_prob(self.score_B, self.score_A, percent_B)
+
+        score = Score_Tuple(
+            points_A=points_A_serv + points_A_rec,
+            points_A_serv=points_A_serv,
+            points_A_rec=points_A_rec,
+            percent_A=int(percent_A * 100),
+            game_prob_A=int(game_prob_A * 100),
+            points_B=points_B_serv + points_B_rec,
+            points_B_serv=points_B_serv,
+            points_B_rec=points_B_rec,
+            percent_B=int(percent_B * 100),
+            game_prob_B=int(game_prob_B * 100),
+        )
+
+        print("Score:", score)
+        return score
 
     def next_game_number(self):
         max_game = 0
@@ -542,7 +570,7 @@ class TennisSet(Model):
         games = TennisGame.objects.filter(set=self).order_by('game_no')
         games_string = ""
         for game in games:
-            games_string += f"{game.score()} {game.game_no}<br>"
+            games_string += f"(G{game.game_no}) {game.score()}<br>"
         return games_string
 
     def next_game_number(self):
