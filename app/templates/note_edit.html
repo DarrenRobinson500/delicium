@@ -7,12 +7,12 @@
         Parent: <a href="{% url 'note' object.parent.id %}">{{ object.parent_text }}</a>
     {% endif %}
 
-            <h3>Edit Note</h3>
-             <form action="{% url 'edit_note' object.id %}" class="form-inline my-2 my-lg-0" method="POST">
-                {% csrf_token %}
-                {{ form.media }}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-yak">Save note</button>
-            </form>
+    <h3>Edit Note</h3>
+     <form action="{% url 'edit_note' object.id %}" class="form-inline my-2 my-lg-0" method="POST">
+        {% csrf_token %}
+        {{ form.media }}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-yak">Save note</button>
+    </form>
 
 {% endblock %}

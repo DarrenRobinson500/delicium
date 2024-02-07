@@ -2,23 +2,15 @@
 {% block content %}
 
     <h1>{{ object | safe }}</h1>
+    <p>{{ object.text | safe }}</p>
 
     {% if object.parent %}
         Parent: <a href="{% url 'note' object.parent.id %}">{{ object.parent_text }}</a><br>
-        Hierarchy: {% for parent in object.parents %}
-            <a href="{% url 'note' parent.id %}">{{ parent.heading }}</a> >
-        {% endfor %}<br>
     {% endif %}
+    <a href="{% url 'edit_note' object.id %}">edit</a>
     {% if home_pc %}
-        <a href="{% url 'downloadpage' %}" class="btn btn-yak">Download</a>
+        <a href="{% url 'downloadpage' %}">download</a>
     {% endif %}
-    <h3>Edit Note</h3>
-     <form action="{% url 'edit_note' object.id %}" class="form-inline my-2 my-lg-0" method="POST">
-        {% csrf_token %}
-        {{ form.media }}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-yak">Save note</button>
-    </form>
 
     <table class="table">
       <tbody>
@@ -54,13 +46,17 @@
     </table>
 
 
-    <h3>Create Note - Child of {{ object }}</h3>
+
+
+    <h3>Create Note</h3>
      <form action="{% url 'note' object.id %}" class="form-inline my-2 my-lg-0" method="POST">
         {% csrf_token %}
-        {{ form_empty.media }}
-        {{ form_empty.as_p }}
+        {{ form.media }}
+        {{ form.as_p }}
         <button type="submit" class="btn btn-yak">Add note</button>
     </form>
-<br><br><br>
+
+
+<hr>
 
 {% endblock %}

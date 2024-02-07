@@ -7,9 +7,9 @@ def set_prob(a, b, pa, pb):
     if b >= 4: return 0
     return p * set_prob(a + 1, b, pa, pb) + q * set_prob(a, b + 1, pa, pb)
 
-for a, b in [(3,3), (3,2), (3,1), (3,0), (2, 3), (2, 2), (0, 0)]:
-    result = set_prob(a, b, 0.60, 0.55)
-    print("Result:", a, b, round(result, 2))
+# for a, b in [(3,3), (3,2), (3,1), (3,0), (2, 3), (2, 2), (0, 0)]:
+#     result = set_prob(a, b, 0.60, 0.55)
+#     print("Result:", a, b, round(result, 2))
 
 
 def game_prob(a, b, p):

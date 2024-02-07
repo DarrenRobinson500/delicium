@@ -92,7 +92,6 @@ class Note(Model):
             chn = self.chain() + " "
         else:
             chn = ""
-
         return f"{chn}{self.heading}"
 
     def parent_text(self):
@@ -112,6 +111,13 @@ class Note(Model):
             self.note_date += freq
             print("Updating date", self, self.note_date)
         self.save()
+
+    def parents(self):
+        result = []
+        if self.parent:
+            result = self.parent.parents()
+        result.append(self)
+        return result
 
     def chain(self):
         chain = str(self.order) + "."

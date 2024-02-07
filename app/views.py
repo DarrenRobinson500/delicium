@@ -278,7 +278,6 @@ def edit_note(request, id):
         form = NoteForm(request.POST, instance=object)
         if form.is_valid():
             form.save()
-
             messages.success(request, "Note saved")
             return redirect("note", object.id)
         else:
@@ -290,8 +289,31 @@ def edit_note(request, id):
     context = {'object': object, 'categories': categories, 'form': form}
     return render(request, 'note_edit.html', context)
 
-
 def note(request, id):
+    if not request.user.is_authenticated: return redirect("login")
+    object = Note.objects.get(id=id)
+    if request.method == 'POST':
+        form = NoteForm(request.POST or None)
+        if form.is_valid():
+            new_note = form.save()
+        else:
+            text = form.cleaned_data['text']
+            new_note = Note.objects.create(text=text)
+        new_note.parent = object
+        new_note.save()
+    form_empty = NoteForm()
+    form = NoteForm(instance=object)
+    object.order_children()
+    children = Note.objects.filter(parent=object).order_by('category', 'order')
+    # add_order_to_children(object)
+    count = len(children)
+    categories = Category.objects.all()
+
+    home_pc = socket.gethostname() == "Mum_and_Dads"
+    context = {'object': object, 'categories': categories, 'children': children, 'count': count, 'form_empty': form_empty, 'form': form, 'home_pc': home_pc}
+    return render(request, 'note.html', context)
+
+def note_old(request, id):
     if not request.user.is_authenticated: return redirect("login")
     object = Note.objects.get(id=id)
     if request.method == 'POST':
@@ -309,15 +331,6 @@ def note(request, id):
     # add_order_to_children(object)
     count = len(children)
     categories = Category.objects.all()
-
-    for child in children:
-        if child.heading == None:
-            child.heading = child.text
-            child.text = ""
-            child.save()
-        if child.heading == child.text:
-            child.text = ""
-            child.save()
 
     home_pc = socket.gethostname() == "Mum_and_Dads"
     context = {'object': object, 'categories': categories, 'children': children, 'count': count, 'form': form, 'home_pc': home_pc}
@@ -352,8 +365,6 @@ def reorder(request, dir, id):
         return redirect("note", str(object.parent.id))
     else:
         return redirect("notes")
-
-
 
 def add_order_to_children(object):
     children = Note.objects.filter(parent=object).order_by('category')
@@ -446,13 +457,14 @@ def clash(request):
     return render(request, 'clash.html', context)
 
 def hero_inc(request, id, hero):
+    if not request.user.is_authenticated: return redirect("login")
     player = Player.objects.get(id=id)
     if player:
         if hero == "king": player.king += 1
         if hero == "queen": player.queen += 1
         if hero == "warden": player.warden += 1
         if hero == "champ": player.champ += 1
-        player.save()
+        # player.save()
 
     return redirect('clash')
 
