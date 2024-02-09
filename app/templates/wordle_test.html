@@ -20,15 +20,29 @@
             {% endfor %}
         </table>
         Future Average Score: <b>{{ score }}</b> (originally 3.47)<br>
-        {{ message }}<br><br>
+        {{ message }}<br>
+        {{ message_2 }}<br><br>
         <a href="{% url 'wordle_test' %}" class='btn btn-yak'>Redo</a><br>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-5">
         <h2>Second Word</h2>
-        {% for word, count in second_word_array %}
-            <a href="{% url 'wordle_second' word %}">{{ word | upper }}</a>: {{ count }}<br>
-        {% endfor %}<br>
-
+        <div class="row">
+            <div class="col-sm-4">
+                {% for word, count in second_word_array_1 %}
+                    <a href="{% url 'wordle_second' word %}">{{ word | upper }}</a>: {{ count }}<br>
+                {% endfor %}<br>
+            </div>
+            <div class="col-sm-4">
+                {% for word, count in second_word_array_2 %}
+                    <a href="{% url 'wordle_second' word %}">{{ word | upper }}</a>: {{ count }}<br>
+                {% endfor %}<br>
+            </div>
+            <div class="col-sm-4">
+                {% for word, count in second_word_array_3 %}
+                    <a href="{% url 'wordle_second' word %}">{{ word | upper }}</a>: {{ count }}<br>
+                {% endfor %}<br>
+            </div>
+        </div>
     </div>
 </div>
 <div class="row">

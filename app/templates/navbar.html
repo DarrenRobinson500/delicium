@@ -1,6 +1,5 @@
 <nav class="navbar navbar-light navbar-expand-xl" style="background-color: #ffc0cb;">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{% url 'home' %}">PinkYak</a>
 
     {% if user.is_authenticated %}
       {% if user.first_name == "Amanda" %}
@@ -27,6 +26,7 @@
               <li><a class="nav-link active" href="{% url 'clash' %}">Clash</a></li>
               <li><a class="nav-link active" href="{% url 'tennis' %}">Tennis</a></li>
               <li><a class="nav-link active" href="{% url 'wordle' %}">Wordle</a></li>
+              <li><a class="nav-link active" href="{% url 'wordle_test' %}">Past</a></li>
               <li><a class="nav-link active" href="{% url 'word' %}">Word</a></li>
             </ul>
           </li>
@@ -42,10 +42,6 @@
 
         </ul>
       {% endif %}
-      <ul class="nav justify-content-end">
-        <li class="nav-item nav-link">Hello {{ user.first_name }}</a></li>
-        <li class="nav-item"><a class="nav-link active" href="{% url 'logout' %}">Log out</a></li>
-      </ul>
    {% else %}
       <ul class="nav justify-content-end">
         <li class="nav-item"><a class="nav-link active" href="{% url 'tennis' %}">Tennis</a></li>
