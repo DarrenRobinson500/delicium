@@ -1,9 +1,22 @@
+import os
+from urllib.parse import urljoin
+
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+
 from django.db.models import *
 from datetime import datetime, date, timedelta, time
 from django.db.models.functions import ExtractMonth, ExtractDay
-from ckeditor.fields import RichTextField
+# from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 from collections import namedtuple
 from .prob import *
+
+
+class CustomStorage(FileSystemStorage):
+    """Custom storage for django_ckeditor_5 images."""
+    location = os.path.join(settings.MEDIA_ROOT, "django_ckeditor_5")
+    base_url = urljoin(settings.MEDIA_URL, "django_ckeditor_5/")
 
 class General(Model):
     name = CharField(max_length=30, default="main")
@@ -68,7 +81,9 @@ class Category(Model):
 
 class Diary(Model):
     string_name = "Diary"
-    text = RichTextField(null=True, blank=True)
+    # text = RichTextField(null=True, blank=True)
+    text = CKEditor5Field('Text', null=True, blank=True)
+    # text = CKEditor5Field('Text', config_name='extends', null=True)
     date = DateField(auto_now_add=True, null=True)
 
     class Meta:
@@ -80,7 +95,9 @@ class Note(Model):
     choices = [("Weekly", "Weekly"), ("Fortnightly", "Fortnightly"), ("Monthly", "Monthly"), ]
     string_name = "Note"
     heading = TextField(null=True, blank=True)
-    text = RichTextField(null=True, blank=True)
+    # text = RichTextField(null=True, blank=True)
+    text = CKEditor5Field('Text', null=True, blank=True)
+    # text = CKEditor5Field('Text', config_name='extends', null=True)
     category = ForeignKey(Category, null=True, blank=True, on_delete=SET_NULL)
     parent = ForeignKey('self', null=True, blank=True, on_delete=CASCADE)
     create_date = DateField(auto_now_add=True, null=True, blank=True)
@@ -161,7 +178,10 @@ class Dog(Model):
     name = TextField(null=True, blank=True)
     owners = TextField(null=True, blank=True)
     owners_number = TextField(null=True, blank=True)
-    notes = RichTextField(null=True, blank=True)
+    # notes = RichTextField(null=True, blank=True)
+    notes = CKEditor5Field('Text', null=True, blank=True)
+    # notes = CKEditor5Field('Text', config_name='extends', null=True)
+
     approved = CharField(default="Yes", choices=[("Yes", "Yes"), ("No", "No"), ("Limited", "Limited")])
     image = ImageField(null=True, blank=True, upload_to="images/")
     owners_link = ForeignKey(Note, null=True, on_delete=SET_NULL, blank=True)

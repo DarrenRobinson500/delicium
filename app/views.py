@@ -148,11 +148,14 @@ def dogs(request):
     return render(request, 'dog.html', context)
 
 def dog_edit(request, id):
+    print("A")
     if not request.user.is_authenticated: return redirect("login")
     dog = Dog.objects.get(id=id)
     if request.method == 'POST':
+        print("B")
         form = DogForm(request.POST, request.FILES, instance=dog)
         if form.is_valid(): form.save()
+        print("C")
         return redirect("dogs")
 
     form = DogForm(instance=dog)
