@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import HttpResponse
+import openpyxl as xl
 
 import pandas as pd
 import requests
@@ -18,7 +19,137 @@ def home(request):
     if not request.user.is_authenticated: return redirect("login")
     if request.user == "Amanda":
         return redirect("dog_diary")
-    return redirect('notes')
+    home_pc = socket.gethostname() == "Mum_and_Dads"
+    if home_pc:
+        return render(request, "home.html", context={})
+    return redirect("note")
+
+def load_data(request):
+    file = "excel/data.xlsx"
+    wb = xl.load_workbook(file)
+    sheet_names = wb.sheetnames
+
+    context = {"sheet_names": sheet_names, }
+    return render(request, "load_data.html", context)
+
+def utility(request):
+    no_word_wordles = Wordle.objects.filter(word__isnull=True)
+    no_word_wordles.delete()
+    context = {"objects": no_word_wordles, }
+    return render(request, "home.html", context)
+
+def add_record(model, headings, values):
+    new_record = model(id=values[0])
+    new_record.save()
+    for field_name, value in zip(headings, values):
+        if field_name[-3:] == "_id":
+            print("Foreign key detected:", field_name)
+        elif hasattr(model, field_name):
+            setattr(new_record, field_name, value)
+            print("Update data:", model, field_name, value)
+        else:
+            print(f"{field_name} does not exist in {model.string_name}")
+    new_record.save()
+
+def create_link(model, field, own_id, link_id, ):
+    record = model.objects.get(id=own_id)
+    link = model.objects.get(id=link_id)
+    setattr(record, field, link)
+    record.save()
+
+def create_link_2(own_model, link_model, field, own_id, link_id, ):
+    record = own_model.objects.get(id=own_id)
+    link = link_model.objects.get(id=link_id)
+    setattr(record, field, link)
+    record.save()
+
+def load_data_ind(request, model_name):
+    # model_name = "Dog"
+    file = "excel/data.xlsx"
+    wb = xl.load_workbook(file)
+    sheet = wb[model_name]
+
+    model = None
+    for model_x in [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement,
+         New_Tide, Tide_Date, Weather, Wordle, TennisMatch, TennisGame, General]:
+        if model_x.string_name == model_name:
+            model = model_x
+
+    column_headings = []
+    for cell in sheet[1]: column_headings.append(cell.value)
+
+    table_data = []
+    for row in sheet.iter_rows():
+        row_data = []
+        for cell in row:
+            row_data.append(cell.value)
+        current_id = row[0].value
+        print("Current id:", current_id)
+        existing_records = 1
+        if type(current_id) is int:
+            existing_records = len(model.objects.filter(id=current_id))
+        if existing_records == 0:
+            add_record(model, column_headings, row_data)
+        row_data.append(existing_records)
+        table_data.append(row_data)
+
+    # Loop through again to include the links
+    link_pos = None
+    if model.string_name == "Note":
+        link_pos = column_headings.index("parent_id")
+        link_model = Note
+        link_name = "parent"
+    if model.string_name == "Booking":
+        link_pos = column_headings.index("dog_id")
+        link_model = Dog
+        link_name = "dog"
+    if link_pos:
+        for row in sheet.iter_rows():
+            current_id = row[0].value
+            if type(current_id) is int:
+                link_id = row[link_pos].value
+                if type(link_id) is int:
+                    create_link_2(model, link_model, link_name, current_id, link_id)
+
+    context = {"heading": model_name, "table_data": table_data,}
+    return render(request, "table.html", context)
+
+def load_data_ind_1(request, model_name):
+    file = "excel/data.xlsx"
+    wb = xl.load_workbook(file)
+    sheet = wb[model_name]
+    first_row = sheet[1]
+    column_headings = []
+    for cell in first_row: column_headings.append(cell.value)
+    model = None
+    all_models = \
+        [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement,
+         New_Tide, Tide_Date, Weather, Wordle, TennisMatch, TennisGame, General]
+    for model_x in all_models:
+        print(model_x.string_name, model_name)
+        if model_x.string_name == model_name:
+            model = model_x
+
+    if model:
+        print("Selected model:", model.string_name)
+        for row in range(2, len(list(sheet.iter_rows()))):
+            current_id = sheet.cell(row, 1).value
+            existing_records = model.objects.filter(id=current_id)
+            print("Current id:", current_id, existing_records)
+            if len(existing_records) == 0: continue
+            new_record = model()
+            new_record.save()
+            for col, field_name in enumerate(column_headings, 1):
+                if hasattr(model, field_name):
+                    value = sheet.cell(row, col).value
+                    setattr(new_record, field_name, value)
+                    print("Update data:", model, field_name, value)
+                else:
+                    print(f"{field_name} does not exist in {model_name}")
+            new_record.save()
+
+    return redirect('load_data')
+
 
 def login_user(request):
     if request.method == "POST":
@@ -48,7 +179,13 @@ def downloadexcel(request):
     if not socket.gethostname() == "Mum_and_Dads": return redirect("notes")
 
     writer = pd.ExcelWriter('my_data.xlsx', engine='xlsxwriter')
+    all_models = \
+        [Category, Diary, Note, Quote, Birthday, Dog, Booking, Event, TH, Player, Shopping, Shop, Timer, TimerElement,
+         New_Tide, Tide_Date, Weather, Wordle, TennisMatch, TennisGame, General]
+
+    print("All models:", all_models)
     for count, model in enumerate(all_models, 1):
+        print("Saving:", model)
         data = model.objects.all()
         df = pd.DataFrame(list(data.values()))
         df.to_excel(writer, sheet_name=f'{model.string_name}', index=False)

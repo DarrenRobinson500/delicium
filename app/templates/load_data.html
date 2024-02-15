@@ -1,0 +1,17 @@
+{% extends 'base.html'%}
+{% block content %}
+<h1>Load Data from Spreadsheet</h1>
+
+    <table class="table">
+        <tr>
+          <th>Table</th>
+          <th>Action</th>
+        </tr>
+        {% for sheet_name in sheet_names %}
+        <tr>
+            <td>{{ sheet_name }}</td>
+            <td><a class="btn btn-yak" href="{% url 'load_data_ind' sheet_name %}">Load</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

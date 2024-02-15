@@ -19,6 +19,7 @@ class CustomStorage(FileSystemStorage):
     base_url = urljoin(settings.MEDIA_URL, "django_ckeditor_5/")
 
 class General(Model):
+    string_name = "General"
     name = CharField(max_length=30, default="main")
     dog_diary_days = IntegerField(default=200)
     wordles_to_do = IntegerField(default=3)
@@ -77,7 +78,10 @@ class Category(Model):
     class Meta:
         verbose_name_plural = "Categories"
     def __str__(self):
-        return self.name
+        if self.name:
+            return self.name
+        else:
+            return "Not named yet"
 
 class Diary(Model):
     string_name = "Diary"
@@ -186,7 +190,9 @@ class Dog(Model):
     image = ImageField(null=True, blank=True, upload_to="images/")
     owners_link = ForeignKey(Note, null=True, on_delete=SET_NULL, blank=True)
     def __str__(self):
-        return self.name
+        if self.name:
+            return self.name
+        return "No name for this dog"
 
     def bookings(self):
         bookings = Booking.objects.filter(dog=self).order_by('start_date')
@@ -213,7 +219,7 @@ class Dog(Model):
 
 class Booking(Model):
     string_name = "Booking"
-    dog = ForeignKey(Dog, on_delete=CASCADE)
+    dog = ForeignKey(Dog, on_delete=CASCADE, null=True)
     start_date = DateField(null=True)
     end_date = DateField(null=True)
 
@@ -263,7 +269,7 @@ class Birthday(Model):
     tag = CharField(max_length=255, default="Birthday")
 
     def __str__(self):
-        return self.person
+        return f"{self.person}({self.id})"
 
     def next_age(self):
         today = datetime.today()
@@ -403,6 +409,7 @@ class MaxTemp(Model):
     def __str__(self): return f"{self.date}: Max {self.max}"
 
 class Wordle(Model):
+    string_name = "Wordle"
     word = CharField(max_length=5, null=True)
     guess_1 = CharField(max_length=5, null=True)
     guess_2 = CharField(max_length=5, null=True)
@@ -415,6 +422,7 @@ class Wordle(Model):
     score = IntegerField(null=True, blank=True)
     attempts = IntegerField(null=True, blank=True)
     def __str__(self):
+        if not self.word: return "No word"
         if self.date:
             return f"{self.word} ({self.date})"
         else:
@@ -451,6 +459,7 @@ class Wordle(Model):
 Score_Tuple = namedtuple('Score_Tuple', ["points_A", "points_A_serv", "points_A_rec", "percent_A", "game_prob_A", "points_B", "points_B_serv", "points_B_rec", "percent_B", "game_prob_B"])
 
 class TennisMatch(Model):
+    string_name = "TennisMatch"
     # player_A = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_A")
     # player_B = ForeignKey(TennisPlayer, null=True, blank=True, on_delete=CASCADE, related_name="player_B")
     player_A = CharField(max_length=30, null=True)
@@ -558,6 +567,7 @@ class TennisMatch(Model):
         return sets[0]
 
 class TennisSet(Model):
+    string_name = "TennisSet"
     match = ForeignKey(TennisMatch, null=True, blank=True, on_delete=CASCADE)
     set_no = IntegerField(null=True, blank=True)
 
@@ -609,6 +619,7 @@ class TennisSet(Model):
         if len(games) > 0: games[0].delete()
 
 class TennisGame(Model):
+    string_name = "TennisGame"
     set = ForeignKey(TennisSet, null=True, blank=True, on_delete=CASCADE)
     game_no = IntegerField(null=True, blank=True)
     score_A = IntegerField(null=True, blank=True)

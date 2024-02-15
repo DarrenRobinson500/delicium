@@ -1,4 +1,12 @@
 {% extends 'base.html'%}
 {% block content %}
-Home
+<h1>Home</h1>
+<a class="btn btn-yak" href="{% url 'load_data' %}">Load Data from Excel</a><br><br>
+
+<a class="btn btn-yak" href="{% url 'utility' %}">Delete Wordles with no words</a><br><br>
+
+{% for object in objects %}
+{{ object }}
+{% endfor %}
+
 {% endblock %}

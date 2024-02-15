@@ -27,7 +27,7 @@ SECRET_KEY = read_file("secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ['www.pink-yak.com', 'pink-yak.com', 'local_host', '127.0.0.1', '3.27.94.183']
+ALLOWED_HOSTS = ['www.pink-yak.com', 'pink-yak.com', 'local_host', '127.0.0.1', '3.27.94.183', '*']
 
 
 # Application definition
@@ -90,16 +90,29 @@ CKEDITOR_CONFIGS = {
 }
 
 
-# Database
-DB_PASSWORD = read_file("db_password")
+# Database - AWS
+# DB_PASSWORD = read_file("db_password")
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'deliciumdb',
+#         'USER': 'mysuperuser',
+#         'PASSWORD': DB_PASSWORD,
+#         'HOST': 'deliciumdb.c10sm4osu84m.ap-southeast-2.rds.amazonaws.com',
+#         'PORT': '5432',
+#     }
+# }
+
+# Database - AWS
+DB_PASSWORD = read_file("db_password_railway")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'deliciumdb',
-        'USER': 'mysuperuser',
+        'NAME': 'railway',
+        'USER': 'postgres',
         'PASSWORD': DB_PASSWORD,
-        'HOST': 'deliciumdb.c10sm4osu84m.ap-southeast-2.rds.amazonaws.com',
-        'PORT': '5432',
+        'HOST': 'monorail.proxy.rlwy.net',
+        'PORT': '43933',
     }
 }
 
@@ -138,7 +151,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'app/static'),
     # os.path.join(BASE_DIR, 'ckeditor'),

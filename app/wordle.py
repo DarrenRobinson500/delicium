@@ -96,7 +96,10 @@ def get_fav_word(wordles):
         wordles = Wordle.objects.filter(Q(word="arose") | Q(word="later") | Q(word="alert") | Q(word="stare") | Q(word="arise"))
 
     highest_score = 0
-    fav_word = wordles[0]
+    if len(wordles) > 0:
+        fav_word = wordles[0]
+    else:
+        fav_word = None
     for wordle in wordles:
         score = 0
         for letter in set(wordle.word): score += counter[letter]
@@ -201,7 +204,8 @@ def wordle_test(request, id=None):
     remaining_words = Wordle.objects.filter(date__isnull=True)
     remaining_words_not_tested = remaining_words.filter(last_reviewed__isnull=True)
     message = f"Proportion of words tested: {int((1-len(remaining_words_not_tested)/len(remaining_words))*100)}% ({len(remaining_words) - len(remaining_words_not_tested)} of {len(remaining_words)})"
-    message_2 = f"Hard words: {attempts_range[4][1] + attempts_range[5][1] + attempts_range[6][1]}"
+    hard_words = attempts_range[4][1] + attempts_range[5][1] + attempts_range[6][1]
+    message_2 = f"Hard words: {hard_words} ({int(hard_words/len(remaining_words)*100)}%)"
 
     todays_word = Wordle.objects.filter(date__isnull=False).order_by('-date')
 
@@ -239,15 +243,15 @@ def wordle(request):
     colour = ["", "", "", "", "", ]
 
     if request.method == 'POST':
-        print("\nPrinting request post")
+        # print("\nPrinting request post")
         for key, value_X in request.POST.items():
-            print(f"{key}: {value_X} {key[0:5]}")
+            # print(f"{key}: {value_X} {key[0:5]}")
 
             if key[0:5] == "Prior":
                 array = ast.literal_eval(value_X)
                 input_array.append(array)
-        print("Finished Printing request post\n")
-        print("Input array (pre):", input_array)
+        # print("Finished Printing request post\n")
+        # print("Input array (pre):", input_array)
 
         numbers = ["1", "2", "3", "4", "5", ]
         for x in numbers:

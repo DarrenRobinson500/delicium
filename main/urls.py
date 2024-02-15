@@ -30,6 +30,10 @@ urlpatterns = [
     path('login/', login_user, name="login"),
     path('logout/', logout_user, name="logout"),
     path("home", home, name="home"),
+    path("utility", utility, name="utility"),
+    # path("utility_2", utility_2, name="utility_2"),
+    path("load_data", load_data, name="load_data"),
+    path("load_data_ind/<model_name>", load_data_ind, name="load_data_ind"),
     path("shopping", shopping, name="shopping"),
     path("shopping_save", shopping_save, name="shopping_save"),
     path("shopping_edit/<id>", shopping_edit, name="shopping_edit"),
@@ -77,4 +81,7 @@ urlpatterns = [
     path('tennis_score/<id>/<a>/<b>', tennis_score, name='tennis_score'),
     path('tennis_delete_game/<id>', tennis_delete_game, name='tennis_delete_game'),
     path("ckeditor5/", include("django_ckeditor_5.urls"), name="ck_editor_5_upload_file"),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
