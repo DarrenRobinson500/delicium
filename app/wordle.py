@@ -82,6 +82,25 @@ def wordle_clear(request, id):
     object.save()
     return redirect('wordle')
 
+def get_fav_word_simple(wordles):
+    all_letters = ""
+    for wordle in wordles:
+        unique_letters = set(wordle.word)
+        for letter in unique_letters:
+            all_letters += letter
+    counter = Counter(all_letters)
+    highest_score = 0
+    if len(wordles) > 0:    fav_word = wordles[0]
+    else:                   fav_word = None
+
+    for wordle in wordles:
+        score = 0
+        for letter in set(wordle.word): score += counter[letter]
+        if score > highest_score:
+            highest_score = score
+            fav_word = wordle
+    return fav_word
+
 
 def get_fav_word(wordles):
     Wordle.objects.all().update(score=0)
@@ -115,9 +134,11 @@ def get_fav_word(wordles):
 
     return counter_list, fav_word
 
-def get_valid_words(input_array):
+def get_valid_words(input_array, remaining_words=None):
     words = []
-    for word in Wordle.objects.filter(date__isnull=True):
+    if not remaining_words:
+        remaining_words = Wordle.objects.filter(date__isnull=True)
+    for word in remaining_words:
         valid = True
         for attempt in input_array:
             count = 0
@@ -129,16 +150,39 @@ def get_valid_words(input_array):
 
 def solve_wordle(wordle):
     input_array.clear()
+    remaining_words = Wordle.objects.filter(date__isnull=True)
+    fav_word = remaining_words.filter(word="arise").first()
+    while fav_word != wordle:
+        input_row = []
+        colours = determine_colours(wordle.word, fav_word.word)
+        for x in range(5): input_row.append((fav_word.word[x], colours[x]))
+        input_array.append(input_row)
+        remaining_words = get_valid_words(input_array, remaining_words)
+        fav_word = get_fav_word_simple(remaining_words)
+        # Fav word is solved => save it.
+        # fav_word.attempts = len(input_array) + 1
+        # fav_word.last_reviewed = date.today()
+        # fav_word.save()
+
+    input_row = []
+    colours = determine_colours(wordle.word, fav_word.word)
+    for x in range(5): input_row.append((fav_word.word[x], colours[x]))
+    input_array.append(input_row)
+
+    wordle.attempts = len(input_array)
+    wordle.last_reviewed = date.today()
+    wordle.save()
+
+def solve_wordle_old(wordle):
+    input_array.clear()
     words = get_valid_words(input_array)
     # print("Solve wordle words:", words)
     counter, fav_word = get_fav_word(words)
     # wordle.save_guess(fav_word, 1)
-    count = 1
     while fav_word != wordle:
         words = get_valid_words(input_array)
         counter, fav_word = get_fav_word(words)
         wordle.save_guess(fav_word, count)
-        count += 1
         colours = determine_colours(wordle.word, fav_word.word)
         input = []
         for x in range(5): input.append((fav_word.word[x], colours[x]))
@@ -166,12 +210,13 @@ def wordle_test(request, id=None):
     # input_array = None
 
     # Solve a number of wordles that don't have a date
-    wordles_to_do = General.objects.get(name="main").wordles_to_do
-    wordles = Wordle.objects.filter(last_reviewed__isnull=True, date__isnull=True).order_by('-last_reviewed')[0:wordles_to_do]
-    for wordle in wordles:
-        if wordle:
-            print(f"Redoing '{wordle.word.upper()}'")
-            solve_wordle(wordle)
+    if not id:
+        wordles_to_do = General.objects.get(name="main").wordles_to_do
+        wordles = Wordle.objects.filter(last_reviewed__isnull=True, date__isnull=True).order_by('-last_reviewed')[0:wordles_to_do]
+        for wordle in wordles:
+            if wordle:
+                print(f"Redoing '{wordle.word.upper()}'")
+                solve_wordle(wordle)
 
     # Solve the particular wordle requested
     if id:
@@ -190,7 +235,7 @@ def wordle_test(request, id=None):
             no += category['count'] * category['attempts']
             total += category['count']
     attempts_range = sorted(attempts_range, key=lambda x: x[0])
-    score = round(no/total, 2)
+    score = round(no/total, 3)
 
     # Categorisation of second word
     categories_second_word = Wordle.objects.values('guess_2').annotate(count=Count('guess_2'))

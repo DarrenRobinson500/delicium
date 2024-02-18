@@ -411,12 +411,12 @@ class MaxTemp(Model):
 class Wordle(Model):
     string_name = "Wordle"
     word = CharField(max_length=5, null=True)
-    guess_1 = CharField(max_length=5, null=True)
-    guess_2 = CharField(max_length=5, null=True)
-    guess_3 = CharField(max_length=5, null=True)
-    guess_4 = CharField(max_length=5, null=True)
-    guess_5 = CharField(max_length=5, null=True)
-    guess_6 = CharField(max_length=5, null=True)
+    guess_1 = CharField(max_length=5, null=True, blank=True)
+    guess_2 = CharField(max_length=5, null=True, blank=True)
+    guess_3 = CharField(max_length=5, null=True, blank=True)
+    guess_4 = CharField(max_length=5, null=True, blank=True)
+    guess_5 = CharField(max_length=5, null=True, blank=True)
+    guess_6 = CharField(max_length=5, null=True, blank=True)
     date = DateField(null=True, blank=False)
     last_reviewed = DateField(null=True, blank=False, default=None)
     score = IntegerField(null=True, blank=True)
