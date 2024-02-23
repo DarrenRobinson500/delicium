@@ -30,7 +30,7 @@
      <tbody>
         {% for item in objects %}
         <tr>
-            <td><a href="{% url 'dog_edit' item.id %}">{{ item.name }} ({{ item.id }})</a>{% if item.nights > 0 %} ({{ item.nights }}){% endif %}</td>
+            <td><a href="{% url 'dog_edit' item.id %}">{{ item.name }} ({{ item.id }})</a></td>
             <td>
                 {% if item.owners_link %}
                     <a href="{% url 'note' item.owners_link.id %}">{{ item.owners_link.heading }}</a>

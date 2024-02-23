@@ -27,9 +27,9 @@ from django.views.generic.base import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", home, name="home"),
+    path("home", home, name="home"),
     path('login/', login_user, name="login"),
     path('logout/', logout_user, name="logout"),
-    path("home", home, name="home"),
     path("utility", utility, name="utility"),
     # path("utility_2", utility_2, name="utility_2"),
     path("load_data", load_data, name="load_data"),

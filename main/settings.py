@@ -1,34 +1,36 @@
 import os
 from pathlib import Path
 import socket
+from dotenv import load_dotenv
 
 
-def read_file(text):
-    file = open("SECRET_KEYS.txt")
-    data = file.readlines()
-    file.close()
-    for line in data:
-        parts = line.strip().split(" ")
-        if parts[0] == text:
-            return parts[1]
+# def read_file(text):
+#     file = open("SECRET_KEYS.txt")
+#     data = file.readlines()
+#     file.close()
+#     for line in data:
+#         parts = line.strip().split(" ")
+#         if parts[0] == text:
+#             return parts[1]
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = read_file("secret_key")
+SECRET_KEY = os.environ.get("secret_key")
 
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ['www.pink-yak.com', 'pink-yak.com', 'local_host', '127.0.0.1', '3.27.94.183', '*']
-
+# ALLOWED_HOSTS = ['www.pink-yak.com', 'pink-yak.com', 'local_host', '127.0.0.1', '3.27.94.183', '*']
+ALLOWED_HOSTS = ['.vercel.app', '.now.sh', '127.0.0.1', 'localhost', ]
 
 # Application definition
 
@@ -104,7 +106,7 @@ CKEDITOR_CONFIGS = {
 # }
 
 # Database - AWS
-DB_PASSWORD = read_file("db_password_railway")
+DB_PASSWORD = os.environ.get("db_password_railway")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -150,16 +152,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'app/static'),
-    # os.path.join(BASE_DIR, 'ckeditor'),
-    # os.path.join(BASE_DIR, 'ckeditor_uploader'),
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'app/static'),
+#     # os.path.join(BASE_DIR, 'ckeditor'),
+#     # os.path.join(BASE_DIR, 'ckeditor_uploader'),
+#
+#     # BASE_DIR / 'static',
+# ]
 
-    # BASE_DIR / 'static',
-]
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'), ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+
+
 
 MEDIA_URL = "/media/"
 # MEDIA_ROOT = MEDIA_URL
@@ -191,15 +199,15 @@ else:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     AWS_QUERYSTRING_AUTH = False
 
-AWS_ACCESS_KEY_ID = read_file("AWS_ACCESS_KEY_ID")                  # new
-AWS_SECRET_ACCESS_KEY = read_file("AWS_SECRET_ACCESS_KEY")          # new
-AWS_STORAGE_BUCKET_NAME = 'pinkyaks3'                               # new
-AWS_S3_SIGNATURE_NAME = 's3v4',
-AWS_S3_REGION_NAME = 'ap-southeast-2'                               # new
-AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL =  None
-AWS_S3_VERITY = True
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# AWS_ACCESS_KEY_ID = read_file("AWS_ACCESS_KEY_ID")                  # new
+# AWS_SECRET_ACCESS_KEY = read_file("AWS_SECRET_ACCESS_KEY")          # new
+# AWS_STORAGE_BUCKET_NAME = 'pinkyaks3'                               # new
+# AWS_S3_SIGNATURE_NAME = 's3v4',
+# AWS_S3_REGION_NAME = 'ap-southeast-2'                               # new
+# AWS_S3_FILE_OVERWRITE = False
+# AWS_DEFAULT_ACL =  None
+# AWS_S3_VERITY = True
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 
 customColorPalette = [

@@ -192,7 +192,7 @@ class Dog(Model):
     def __str__(self):
         if self.name:
             return self.name
-        return "No name for this dog"
+        return f"No name for this dog: {self.id}"
 
     def bookings(self):
         bookings = Booking.objects.filter(dog=self).order_by('start_date')

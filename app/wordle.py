@@ -67,7 +67,7 @@ def add_wordle(request, word):
         todays_wordle.date = today
         todays_wordle.save()
         messages.success(request, f"'{word}' recorded as today's word")
-        affected_wordles = Wordle.objects.filter(guess_2=todays_wordle.guess_2)
+        affected_wordles = Wordle.objects.filter(guess_2=todays_wordle.guess_2, date__isnull=True)
         for wordle in affected_wordles:
             print("Affected word:", wordle)
             wordle.last_reviewed = None
@@ -152,6 +152,7 @@ def solve_wordle(wordle):
     input_array.clear()
     remaining_words = Wordle.objects.filter(date__isnull=True)
     fav_word = remaining_words.filter(word="arise").first()
+    attempts = [fav_word.word, ]
     while fav_word != wordle:
         input_row = []
         colours = determine_colours(wordle.word, fav_word.word)
@@ -159,6 +160,8 @@ def solve_wordle(wordle):
         input_array.append(input_row)
         remaining_words = get_valid_words(input_array, remaining_words)
         fav_word = get_fav_word_simple(remaining_words)
+        attempts.append(fav_word.word)
+        # wordle.save_guess(fav_word, count)
         # Fav word is solved => save it.
         # fav_word.attempts = len(input_array) + 1
         # fav_word.last_reviewed = date.today()
@@ -169,6 +172,12 @@ def solve_wordle(wordle):
     for x in range(5): input_row.append((fav_word.word[x], colours[x]))
     input_array.append(input_row)
 
+    if len(attempts) > 0: wordle.guess_1 = attempts[0]
+    if len(attempts) > 1: wordle.guess_2 = attempts[1]
+    if len(attempts) > 2: wordle.guess_3 = attempts[2]
+    if len(attempts) > 3: wordle.guess_4 = attempts[3]
+    if len(attempts) > 4: wordle.guess_5 = attempts[4]
+    if len(attempts) > 5: wordle.guess_6 = attempts[5]
     wordle.attempts = len(input_array)
     wordle.last_reviewed = date.today()
     wordle.save()
