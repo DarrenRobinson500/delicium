@@ -1,0 +1,13 @@
+
+
+.btn-yak {
+    color: black;
+    background-color: #ffc0cb;
+    border-color: #ffc0cb
+    padding: 10px
+}
+
+.django-ckeditor-widget {
+  width: 100%;
+  height: 50px;
+}
